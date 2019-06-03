@@ -2,6 +2,7 @@
 /// <reference path="node_modules/vectorx/vector.ts" />
 /// <reference path="node_modules/eventsystemx/EventSystem.ts" />
 /// <reference path="src/card.ts" />
+/// <reference path="src/projectutils.ts" />
 
 
 var crret = createCanvas(500,500)
@@ -12,11 +13,11 @@ var roles:Role[] = [
     new Role('moordenaar','white',0),
     new Role('dief','white',0),
     new Role('magier','white',0),
-    new Role('koning','white',0),
-    new Role('prediker','white',0),
-    new Role('koopman','white',0),
+    new Role('koning','yellow',0),
+    new Role('prediker','blue',0),
+    new Role('koopman','green',0),
     new Role('bouwmeester','white',0),
-    new Role('condotierre','white',0),
+    new Role('condotierre','red',0),
 ]
 
 var players:Player[] = [
@@ -48,17 +49,19 @@ var cards:Card[] = [
     new Card(7,3,'toernooiveld'),//3
     new Card(7,5,'vesting'),//2
 
-    new Card(0,2,'hof der wonderen'),//1
-    new Card(0,3,'verdedigingstoren'),//2
-    new Card(0,5,'laboratorium'),//1
-    new Card(0,5,'smederij'),//1
-    new Card(0,5,'observatorium'),//1
-    new Card(0,5,'kerkhof'),//1
-    new Card(0,6,'bibliotheek'),//1
-    new Card(0,6,'school voor magiers'),//1
-    new Card(0,6,'drakenburcht'),//1
-    new Card(0,6,'universiteit'),//1
+    new Card(0,2,'hof der wonderen'),//1 bij winnen telt hof der wonderen voor kleur naar keuze
+    new Card(0,3,'verdedigingstoren'),//2 kan niet vernietigd worden door de condotierre
+    new Card(0,5,'laboratorium'),//1 ruil 1 kaart voor 1 goudstuk
+    new Card(0,5,'smederij'),//1 optie om 2 kaarten te kpoen voor 3 goudstukken
+    new Card(0,5,'observatorium'),//1 bij inkomsten discover 3 kaarten ipv 2
+    new Card(0,5,'kerkhof'),//1 mag voor 1 goudstuk ht door de condotierre vernietigde gebouw kopen(mits niet condotierre)
+    new Card(0,6,'bibliotheek'),//1 bij inkomstenfase mag je beide kaarten houden van de discover
+    new Card(0,6,'school voor magiers'),//1  1 goudstuk voog koning,prediker,koopman of codotierre
+    new Card(0,6,'drakenburcht'),//1   8 punten waard ipv 6
+    new Card(0,6,'universiteit'),//1   8 punten waard ipv 6
 ]
+
+loadImages([])
 
 function genCards(card,amount){
     var res = []
@@ -72,23 +75,38 @@ var game = new Game()
 game.crownWearer = 0
 game.deck = cards.map((c,i) => i)
 
-function renderPlayerPerspective(playerid:number){
-    //money
-    //crown
-    //hand
-    //buildings
+function renderPlayerPerspective(ctxt:CanvasRenderingContext2D,player:Player){
+
+    ctxt.fillText(player.money as any,10,10)
+    if(game.crownWearer == player.id){
+        ctxt.fillRect(10,10,10,10)
+    }
     
-    //other players
-    //money
-    //handcount
-    //buildings
+    for(var cardid of player.hand){
+        renderCard(ctxt,cards[cardid],new Vector(0,0))
+    }
+
+    for(var buildingid of player.buildings){
+        renderCard(ctxt,cards[buildingid],new Vector(0,0))
+    }
+
+    for(var opponent of players.filter(p => p.id != player.id)){
+        ctxt.fillText(player.money as any,10,10)
+        ctxt.fillRect(10,10,10,10)
+        ctxt.fillText(player.hand.length as any,10,10)
+
+        for(var buildingid of opponent.buildings){
+            renderCard(ctxt,cards[buildingid],new Vector(0,0))
+        }
+    }
 }
 
-function renderCard(card,pos){
-    //image
-    //cost
-    //color
-    //name
+function renderCard(ctxt:CanvasRenderingContext2D,card:Card,pos:Vector){
+    ctxt.fillRect(pos.x,pos.y,50,100)
+    ctxt.fillText(card.cost as any,pos.x,pos.y)
+    ctxt.fillStyle = roles[card.role].color
+    ctxt.fillRect(pos.x,pos.y,10,10)
+    ctxt.fillText(card.name,pos.x,pos.y)
 }
 
 function chooseRoles(){
