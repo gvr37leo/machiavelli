@@ -109,27 +109,49 @@ function renderCard(ctxt:CanvasRenderingContext2D,card:Card,pos:Vector){
     ctxt.fillText(card.name,pos.x,pos.y)
 }
 
+function renderRoleCard(ctxt:CanvasRenderingContext2D,role:Role,pos:Vector){
+
+}
+
+function renderPlayerCard(ctxt:CanvasRenderingContext2D,player:Player,pos:Vector){
+
+}
+
 function chooseRoles(){
     var roleReference = [0,1,2,3,4,5,6,7]
     shuffle(roleReference)
 }
 
-function discoverRoles(roles:number[]):Promise<number>{
+function discover(renderers:((pos:Vector) => void)[]):Promise<number>{
+    //render
+    //wait for click
+    //return index
     return null
 }
 
-function discoverCards(cards:number[]):Promise<number>{
-    return null
+async function discoverRoles(roles:Role[]):Promise<Role>{
+    return roles[await discover(roles.map(role => function(pos){
+        renderRoleCard(ctxt,role,pos)
+    }))]
 }
 
-function discoverOtherPlayers(blackPlayer:number):Promise<number>{
-    return null
+async function discoverCards(cards:Card[]):Promise<Card>{
+    return cards[await discover(cards.map(c => function(pos){
+        renderCard(ctxt,c,pos)
+    }))]
+}
+
+async function discoverPlayers(players:Player[]):Promise<Player>{
+    return players[await discover(players.map(player => function(pos){
+        renderPlayerCard(ctxt,player,pos)
+    }))]
+}
+
+function discoverOtherPlayers(blackPlayer:Player):Promise<Player>{
+    return discoverPlayers(players.filter(p => p.id != blackPlayer.id).map(p => p))
 }
 
 
-function discoverPlayers(players:number[]):Promise<number>{
-    return null
-}
 
 
 function shuffle<T>(array:T[]):T[]{
@@ -166,18 +188,15 @@ async function takePlayerTurn(playerid){
     var player = players[playerid]
     player.money += 2
     if(player.role == 0){//moordenaar
-        game.murderedRole = await discoverRoles([1,2,3,4,5,6,7])
+        game.murderedRole = (await discoverRoles([1,2,3,4,5,6,7].map(rid => roles[rid]))).id
     }
     if(player.role == 1){//dief
-        game.burgledRole = await discoverRoles([2,3,4,5,6,7])
+        game.burgledRole = (await discoverRoles([2,3,4,5,6,7].map(rid => roles[rid]))).id
     }
     if(player.role == 2){//magier
-        //switch cards with other player
-        var swapPlayerId = await discoverOtherPlayers(playerid)
-        var temp = player.hand
-        player.hand = players[swapPlayerId].hand
-        players[swapPlayerId].hand = temp
-        mulligan(player.id)
+        var swapPlayer:Player = await discoverOtherPlayers(playerid);
+        [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
+        // mulligan(player.id)
 
     }
     if(player.role == 3){//koning
@@ -198,11 +217,9 @@ async function takePlayerTurn(playerid){
     }
     if(player.role == 7){//condotierre
         player.money += countBuildingIncome(playerid)
-        discoverOtherPlayers(playerid).then(pid => {
-            var chosenPlayer = players[pid]
-            discoverCards(chosenPlayer.buildings).then(chosenBuilding => {
-                var building = cards[chosenBuilding]
-                player.money -= building.cost - 1
+        discoverOtherPlayers(playerid).then(chosenPlayer => {
+            discoverCards(chosenPlayer.buildings.map(bid => cards[bid])).then(chosenBuilding => {
+                player.money -= chosenBuilding.cost - 1
                 findAndDelete(player.buildings,chosenBuilding)
             })
         })
@@ -214,7 +231,7 @@ async function takePlayerTurn(playerid){
 loop((dt) => {
     ctxt.clearRect(0,0,500,500)
 
-    ctxt.fillRect(10,10,10,10)
+    renderPlayerPerspective(ctxt,players[0])
 })
 
 function countScores(firstPlayerId:number,playerids:number[]){
