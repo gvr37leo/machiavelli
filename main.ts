@@ -3,6 +3,8 @@
 /// <reference path="node_modules/eventsystemx/EventSystem.ts" />
 /// <reference path="src/card.ts" />
 /// <reference path="src/projectutils.ts" />
+/// <reference path="node_modules/rect3x/rect.ts" />
+
 
 
 var crret = createCanvas(500,500)
@@ -11,13 +13,13 @@ var ctxt = crret.ctxt
 
 var roles:Role[] = [
     new Role('moordenaar','white',0),
-    new Role('dief','white',0),
-    new Role('magier','white',0),
-    new Role('koning','yellow',0),
-    new Role('prediker','blue',0),
-    new Role('koopman','green',0),
-    new Role('bouwmeester','white',0),
-    new Role('condotierre','red',0),
+    new Role('dief','white',1),
+    new Role('magier','white',2),
+    new Role('koning','yellow',3),
+    new Role('prediker','blue',4),
+    new Role('koopman','green',5),
+    new Role('bouwmeester','white',6),
+    new Role('condotierre','red',7),
 ]
 
 var players:Player[] = [
@@ -60,7 +62,9 @@ var cards:Card[] = [
     new Card(0,6,'drakenburcht'),//1   8 punten waard ipv 6
     new Card(0,6,'universiteit'),//1   8 punten waard ipv 6
 ]
-
+var clickManager = new ClickManager()
+var cardSize = new Vector(50,100)
+clickManager.startListeningToDocument()
 loadImages([])
 
 function genCards(card,amount){
@@ -102,19 +106,24 @@ function renderPlayerPerspective(ctxt:CanvasRenderingContext2D,player:Player){
 }
 
 function renderCard(ctxt:CanvasRenderingContext2D,card:Card,pos:Vector){
-    ctxt.fillRect(pos.x,pos.y,50,100)
+    ctxt.fillRect(pos.x,pos.y,50,100)//image
     ctxt.fillText(card.cost as any,pos.x,pos.y)
     ctxt.fillStyle = roles[card.role].color
-    ctxt.fillRect(pos.x,pos.y,10,10)
+    ctxt.fillRect(pos.x,pos.y,10,10)//rolecolor
     ctxt.fillText(card.name,pos.x,pos.y)
 }
 
 function renderRoleCard(ctxt:CanvasRenderingContext2D,role:Role,pos:Vector){
-
+    ctxt.fillRect(pos.x,pos.y,50,100)//image
+    ctxt.fillText(role.name as any,pos.x,pos.y)
+    ctxt.fillStyle = role.color
+    ctxt.fillRect(pos.x,pos.y,10,10)//rolecolor
 }
 
 function renderPlayerCard(ctxt:CanvasRenderingContext2D,player:Player,pos:Vector){
-
+    ctxt.fillRect(pos.x,pos.y,50,100)
+    ctxt.fillText(player.money as any,pos.x,pos.y)
+    ctxt.fillText(player.hand.length as any,pos.x,pos.y)
 }
 
 function chooseRoles(){
@@ -123,10 +132,20 @@ function chooseRoles(){
 }
 
 function discover(renderers:((pos:Vector) => void)[]):Promise<number>{
-    //render
-    //wait for click
-    //return index
-    return null
+    return new Promise((res,rej) => {
+        var hitboxes = []
+        for(let i = 0; i < renderers.length; i++){
+            var renderer = renderers[i]
+            var topleft = new Vector(100 + 100 * i,200)
+            renderer(topleft)
+            var hitbox = Rect.fromWidthHeight(cardSize.x,cardSize.y,topleft)
+            hitboxes.push(hitbox)
+            clickManager.listen(hitbox,pos => {
+                hitboxes.forEach(h => clickManager.delisten(h))
+                res(i)
+            })
+        }
+    })
 }
 
 async function discoverRoles(roles:Role[]):Promise<Role>{
@@ -167,21 +186,66 @@ function mulligan(playerid:number){
 
 }
 
-function countBuildingIncome(playerid:number){
-    var player = players[playerid]
+function countBuildingIncome(player:Player){
     return player.buildings.reduce((prev,cur) => {
         return prev + (cards[cur].role == player.role ? 1 : 0)
     },0)
 }
 
-function turn(playerid){
-    var player = players[playerid]
+
+loop((dt) => {
+    ctxt.clearRect(0,0,500,500)
+
+    renderPlayerPerspective(ctxt,players[0])
+})
+
+function countScores(firstPlayerId:number,playerids:number[]){
+    return playerids.map((id) => {
+        var score = 0
+        var player = players[id] 
+        var buildingscore = player.buildings.reduce((score,cardid) => {
+            var building = cards[cardid]
+            return score + building.points
+        },0)
+
+        var uniqueresults = [
+            player.buildings.findIndex((bid) => {
+                return cards[bid].role == 0
+            }),
+            player.buildings.findIndex((bid) => {
+                return cards[bid].role == 1
+            }),
+            player.buildings.findIndex((bid) => {
+                return cards[bid].role == 2
+            }),
+            player.buildings.findIndex((bid) => {
+                return cards[bid].role == 3
+            }),
+            player.buildings.findIndex((bid) => {
+                return cards[bid].isAnyRole
+            }),
+        ]
+        var uniquescore = uniqueresults.findIndex(res => res == -1) == -1 ? 0 : 3
+        var firstscore = id == firstPlayerId ? 4 : 0
+        var secondscore = player.buildings.length >= 8 ? 2 : 0
+        return buildingscore + uniquescore + firstscore + secondscore
+    })
+}
+
+
+function turn(){
+
+    var roledeck = [0,1,2,3,4,5,6,7]
+    if(players.length == 4){
+        roledeck.splice(Math.floor(random(0,roledeck.length)),1)
+    }else if(players.length == 5){
+        roledeck.splice(Math.floor(random(0,roledeck.length)),1)
+        roledeck.splice(Math.floor(random(0,roledeck.length)),1)
+    }
 
     for(var player of players){
-        takePlayerTurn(playerid)
+        takePlayerTurn(player)
     }
-    //build
-    //special skill
 }
 
 async function takePlayerTurn(playerid){
@@ -228,44 +292,6 @@ async function takePlayerTurn(playerid){
     }
 }
 
-loop((dt) => {
-    ctxt.clearRect(0,0,500,500)
-
-    renderPlayerPerspective(ctxt,players[0])
-})
-
-function countScores(firstPlayerId:number,playerids:number[]){
-    return playerids.map((id) => {
-        var score = 0
-        var player = players[id] 
-        var buildingscore = player.buildings.reduce((score,cardid) => {
-            var building = cards[cardid]
-            return score + building.points
-        },0)
-
-        var uniqueresults = [
-            player.buildings.findIndex((bid) => {
-                return cards[bid].role == 0
-            }),
-            player.buildings.findIndex((bid) => {
-                return cards[bid].role == 1
-            }),
-            player.buildings.findIndex((bid) => {
-                return cards[bid].role == 2
-            }),
-            player.buildings.findIndex((bid) => {
-                return cards[bid].role == 3
-            }),
-            player.buildings.findIndex((bid) => {
-                return cards[bid].isAnyRole
-            }),
-        ]
-        var uniquescore = uniqueresults.findIndex(res => res == -1) == -1 ? 0 : 3
-        var firstscore = id == firstPlayerId ? 4 : 0
-        var secondscore = player.buildings.length >= 8 ? 2 : 0
-        return buildingscore + uniquescore + firstscore + secondscore
-    })
-}
 
 //round
 //leg x van de 8 kaarten open op tafel (niet de koning)

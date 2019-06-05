@@ -18,6 +18,7 @@ class Role{
 
 class Player{
     id:number
+    name:string
     hand:number[] = []
     buildings:number[] = []
     constructor(public money:number,public role:number,){
