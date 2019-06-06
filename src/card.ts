@@ -7,6 +7,7 @@ class Game{
     deck
     murderedRole:number
     burgledRole:number
+    firstFinishedPlayer:number
 }
 
 class Role{

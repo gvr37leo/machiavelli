@@ -3,7 +3,7 @@
 /// <reference path="node_modules/eventsystemx/EventSystem.ts" />
 /// <reference path="src/card.ts" />
 /// <reference path="src/projectutils.ts" />
-/// <reference path="node_modules/rect3x/rect.ts" />
+/// <reference path="src/rect.ts" />
 
 
 
@@ -199,10 +199,8 @@ loop((dt) => {
     renderPlayerPerspective(ctxt,players[0])
 })
 
-function countScores(firstPlayerId:number,playerids:number[]){
-    return playerids.map((id) => {
-        var score = 0
-        var player = players[id] 
+function countScores(firstPlayerId:number,players:Player[]){
+    return players.map((player) => {
         var buildingscore = player.buildings.reduce((score,cardid) => {
             var building = cards[cardid]
             return score + building.points
@@ -226,29 +224,49 @@ function countScores(firstPlayerId:number,playerids:number[]){
             }),
         ]
         var uniquescore = uniqueresults.findIndex(res => res == -1) == -1 ? 0 : 3
-        var firstscore = id == firstPlayerId ? 4 : 0
+        var firstscore = player.id == firstPlayerId ? 4 : 0
         var secondscore = player.buildings.length >= 8 ? 2 : 0
         return buildingscore + uniquescore + firstscore + secondscore
     })
 }
 
+async function entiregame(){
+    
+    while(game.firstFinishedPlayer == null){
+        await round()
+    }
+    countScores(game.firstFinishedPlayer,players)
+}
 
-function turn(){
+async function round(){
 
-    var roledeck = [0,1,2,3,4,5,6,7]
+    var roledeck = [0,1,2,4,5,6,7]
+    shuffle(roledeck)
     if(players.length == 4){
-        roledeck.splice(Math.floor(random(0,roledeck.length)),1)
+        roledeck.splice(0,1)
     }else if(players.length == 5){
-        roledeck.splice(Math.floor(random(0,roledeck.length)),1)
-        roledeck.splice(Math.floor(random(0,roledeck.length)),1)
+        roledeck.splice(0,1)
+        roledeck.splice(0,1)
+    }
+
+    roledeck.splice(0,1)//await/coroutine show this role to the king
+    await discoverRoles(roles)
+
+
+    roledeck.push(3)
+    shuffle(roledeck)
+    for(var i = 0;roledeck.length > 1; i++){
+        var role = await discoverRoles(roledeck.map(rid => roles[rid]))
+        findAndDelete(roledeck,role.id)
+        players[i].role = role.id
     }
 
     for(var player of players){
-        takePlayerTurn(player)
+        playerTurn(player)
     }
 }
 
-async function takePlayerTurn(playerid){
+async function playerTurn(playerid){
     var player = players[playerid]
     player.money += 2
     if(player.role == 0){//moordenaar
