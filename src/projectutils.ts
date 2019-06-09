@@ -40,3 +40,7 @@ class ClickManager{
         this.rects.delete(rect)
     }
 }
+
+function randomInt(min:number,max:number){
+    return Math.floor(random(min,max))
+}

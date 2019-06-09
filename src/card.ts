@@ -1,14 +1,3 @@
-class Database{
-
-}
-
-class Game{
-    crownWearer:number
-    deck
-    murderedRole:number
-    burgledRole:number
-    firstFinishedPlayer:number
-}
 
 class Role{
     id:number
@@ -28,13 +17,14 @@ class Player{
 }
 
 class Card{
+    hitbox:Rect = new Rect(new Vector(0,0),new Vector(0,0))
     id:number
     points:number
     effect
     image:number
-    isAction:boolean
-    isAnyRole:boolean
-    constructor(public role:number,public cost:number,public name:string,){
+    isAction:boolean = false
+    isAnyRole:boolean  = false
+    constructor(public role:number,public cost:number,public name:string){
 
     }
 }
