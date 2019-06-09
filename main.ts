@@ -111,6 +111,7 @@ function chooseRoles(){
 }
 
 function discover(renderers:((pos:Vector) => void)[]):Promise<number>{
+    renderers.forEach(r => gamedb.renderers.add(r))
     return new Promise((res,rej) => {
         var hitboxes = []
         for(let i = 0; i < renderers.length; i++){
@@ -129,9 +130,9 @@ function discover(renderers:((pos:Vector) => void)[]):Promise<number>{
 async function discoverRoles(roles:Role[]):Promise<Role>{
     // var renderers = []
     var role = roles[await discover(roles.map(role => function(pos){
-        var renderer = gamedb.renderers.add(ctxt => {
+        ctxt => {
             renderRoleCard(ctxt,role,pos)
-        })
+        }
         // renderers.push(renderer)
     }))]
     // renderers.forEach(r => gamedb.renderers.delete(r.id))
