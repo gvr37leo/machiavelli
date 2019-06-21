@@ -31,110 +31,95 @@ function genCards(card,amount){
 
 gamedb.deck = gamedb.cards.list().map((c,i) => i)
 
-function renderPlayerPerspective(ctxt:CanvasRenderingContext2D,player:Player){
-    endturnButton.draw(ctxt)
+// function renderPlayerPerspective(ctxt:CanvasRenderingContext2D,player:Player){
+//     endturnButton.draw(ctxt)
 
-    ctxt.fillStyle = 'black'
-    ctxt.fillText(player.money as any,130,350)
-    if(gamedb.crownWearer == player.id){
-        ctxt.fillStyle = 'yellow'
-        ctxt.fillRect(130,320,10,10)
-    }
+//     ctxt.fillStyle = 'black'
+//     ctxt.fillText(player.money as any,130,350)
+//     if(gamedb.crownWearer == player.id){
+//         ctxt.fillStyle = 'yellow'
+//         ctxt.fillRect(130,320,10,10)
+//     }
     
-    for(var i = 0; i < player.hand.length; i++){
-        var cardid = player.hand[i]
-        renderCard(ctxt,gamedb.cards.get(cardid),new Vector(150 + i * (cardSize.x + 10),350))
-    }
+//     for(var i = 0; i < player.hand.length; i++){
+//         var cardid = player.hand[i]
+//         // renderCard(ctxt,gamedb.cards.get(cardid),new Vector(150 + i * (cardSize.x + 10),350))
+//     }
 
-    for(var buildingid of player.buildings){
-        renderCard(ctxt,gamedb.cards.get(buildingid),new Vector(0,0))
-    }
+//     for(var buildingid of player.buildings){
+//         // renderCard(ctxt,gamedb.cards.get(buildingid),new Vector(0,0))
+//     }
 
-    var opponents = gamedb.players.list().filter(p => p.id != player.id)
-    for(var i = 0; i < opponents.length; i++){
-        var pos = new Vector(100 + i * (cardSize.x + 10),100)
-        var opponent = opponents[i]
+//     var opponents = gamedb.players.list().filter(p => p.id != player.id)
+//     for(var i = 0; i < opponents.length; i++){
+//         var pos = new Vector(100 + i * (cardSize.x + 10),100)
+//         var opponent = opponents[i]
 
-        ctxt.fillStyle = 'black'
-        ctxt.fillText(player.money as any, pos.x, pos.y)
+//         ctxt.fillStyle = 'black'
+//         ctxt.fillText(player.money as any, pos.x, pos.y)
 
-        if(opponent.id == gamedb.crownWearer){
-            ctxt.fillStyle = 'yellow'//crown
-            ctxt.fillRect(pos.x, pos.y - 20,10,10)
-        }
+//         if(opponent.id == gamedb.crownWearer){
+//             ctxt.fillStyle = 'yellow'//crown
+//             ctxt.fillRect(pos.x, pos.y - 20,10,10)
+//         }
 
-        ctxt.fillStyle = 'black'
-        ctxt.fillText(player.hand.length as any,pos.x, pos.y + 10)
+//         ctxt.fillStyle = 'black'
+//         ctxt.fillText(player.hand.length as any,pos.x, pos.y + 10)
 
-        for(var buildingid of opponent.buildings){
-            renderCard(ctxt,gamedb.cards.get(buildingid),pos)
-        }
-    }
-}
+//         for(var buildingid of opponent.buildings){
+//             // renderCard(ctxt,gamedb.cards.get(buildingid),pos)
+//         }
+//     }
+// }
 
-function renderCard(ctxt:CanvasRenderingContext2D,card:Card,pos:Vector){
-    ctxt.fillStyle = 'grey'
-    ctxt.fillRect(pos.x,pos.y,cardSize.x,cardSize.y)//image
+// function renderCard(ctxt:CanvasRenderingContext2D,card:Card,pos:Vector){
+//     ctxt.fillStyle = 'grey'
+//     ctxt.fillRect(pos.x,pos.y,cardSize.x,cardSize.y)//image
 
-    ctxt.fillStyle = 'black'
-    ctxt.fillText(card.cost as any,pos.x,pos.y)
+//     ctxt.fillStyle = 'black'
+//     ctxt.fillText(card.cost as any,pos.x,pos.y)
 
     
-    ctxt.fillStyle = card.isAnyRole ? 'purple' : gamedb.roles.get(card.role).color
+//     ctxt.fillStyle = card.isAnyRole ? 'purple' : gamedb.roles.get(card.role).color
     
-    ctxt.fillRect(pos.x,pos.y,10,10)//rolecolor
+//     ctxt.fillRect(pos.x,pos.y,10,10)//rolecolor
 
-    ctxt.fillStyle = 'black'
-    ctxt.fillText(card.name,pos.x,pos.y + cardSize.y - 10)
-}
+//     ctxt.fillStyle = 'black'
+//     ctxt.fillText(card.name,pos.x,pos.y + cardSize.y - 10)
+// }
 
-function renderRoleCard(ctxt:CanvasRenderingContext2D,role:Role,pos:Vector){
-    ctxt.fillStyle = 'gray'
-    ctxt.fillRect(pos.x,pos.y,50,100)//image
+// function renderRoleCard(ctxt:CanvasRenderingContext2D,role:Role,pos:Vector){
+//     ctxt.fillStyle = 'gray'
+//     ctxt.fillRect(pos.x,pos.y,50,100)//image
 
-    ctxt.fillStyle = 'black'
-    ctxt.fillText(role.name as any,pos.x,pos.y)
+//     ctxt.fillStyle = 'black'
+//     ctxt.fillText(role.name as any,pos.x,pos.y)
 
-    ctxt.fillStyle = role.color
-    ctxt.fillRect(pos.x,pos.y,10,10)//rolecolor
-}
+//     ctxt.fillStyle = role.color
+//     ctxt.fillRect(pos.x,pos.y,10,10)//rolecolor
+// }
 
-function renderPlayerCard(ctxt:CanvasRenderingContext2D,player:Player,pos:Vector){
-    ctxt.fillRect(pos.x,pos.y,50,100)
-    ctxt.fillText(player.money as any,pos.x,pos.y)
-    ctxt.fillText(player.hand.length as any,pos.x,pos.y)
-}
+// function renderPlayerCard(ctxt:CanvasRenderingContext2D,player:Player,pos:Vector){
+//     ctxt.fillRect(pos.x,pos.y,50,100)
+//     ctxt.fillText(player.money as any,pos.x,pos.y)
+//     ctxt.fillText(player.hand.length as any,pos.x,pos.y)
+// }
 
 function chooseRoles(){
     var roleReference = [0,1,2,3,4,5,6,7]
     shuffle(roleReference)
 }
 
-function discover(renderers:((pos:Vector) => void)[]):Promise<number>{
-    renderers.forEach(r => gamedb.renderers.add(r))
-    return new Promise((res,rej) => {
-        var hitboxes = []
-        for(let i = 0; i < renderers.length; i++){
-            var renderer = renderers[i]
-            var topleft = new Vector(100 + 100 * i,200)
-            var hitbox = new Rect(topleft,topleft.c().add(cardSize))
-            hitboxes.push(hitbox)
-            clickManager.listen(hitbox,pos => {
-                hitboxes.forEach(h => clickManager.delisten(h))
-                res(i)
-            })
-        }
-    })
-}
+
 
 async function discoverRoles(roles:Role[]):Promise<Role>{
     // var renderers = []
-    var role = roles[await discover(roles.map(role => function(pos){
-        ctxt => {
-            renderRoleCard(ctxt,role,pos)
-        }
+    // var role = roles[await discover(roles.map(role => function(pos){
+    //     ctxt => {
+    //         renderRoleCard(ctxt,role,pos)
+    //     }
         // renderers.push(renderer)
-    }))]
+    // }))]
     // renderers.forEach(r => gamedb.renderers.delete(r.id))
     return role
 }
@@ -309,7 +294,6 @@ loop((dt) => {
     ctxt.clearRect(0,0,canvassize.x,canvassize.y)
 
     renderPlayerPerspective(ctxt,gamedb.players.get(gamedb.playerTurn))
-    gamedb.renderers.list().forEach(r => r(ctxt))
 })
 
 

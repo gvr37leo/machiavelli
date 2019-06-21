@@ -2,7 +2,6 @@ class GameDB{
     roles:Store<Role> = new Store()
     players:Store<Player> = new Store()
     cards:Store<Card> = new Store()
-    renderers:Store<(ctxt:CanvasRenderingContext2D) => void> = new Store()
     crownWearer:number = 0
     deck:number[] = []
     murderedRole:number = 0

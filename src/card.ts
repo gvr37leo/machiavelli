@@ -11,6 +11,14 @@ class Player{
     name:string
     hand:number[] = []
     buildings:number[] = []
+
+    isDiscoveringRoles:boolean = false
+    roles:number[] = []
+    isDiscoveringPlayers:boolean = false
+    players:number[] = []
+    isDiscoveringCards:boolean = false
+    cards:number[] = []
+
     constructor(public money:number,public role:number,){
 
     }
