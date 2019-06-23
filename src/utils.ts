@@ -179,6 +179,12 @@ function string2html(string): HTMLElement {
     return div.children[0] as HTMLElement;
 }
 
+function emptyElement(element:HTMLElement){
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
+
 function line(ctxt:CanvasRenderingContext2D,a:Vector,b:Vector){
     ctxt.beginPath()
     ctxt.moveTo(a.x,a.y)

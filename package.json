@@ -4,11 +4,13 @@
   "description": "",
   "main": "package.js",
   "dependencies": {
+    "@types/node": "^12.0.10",
     "eventsystemx": "*",
     "express": "^4.17.1",
     "rect3x": "^1.0.0",
     "utilsx": "*",
-    "vectorx": "*"
+    "vectorx": "*",
+    "ws": "^7.0.1"
   },
   "devDependencies": {},
   "scripts": {

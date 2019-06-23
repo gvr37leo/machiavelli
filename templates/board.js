@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body style="display: flex; flex-direction: column; justify-content: space-between;">
+var boardhtml = `<div>
     <div style="display: flex;" id="opponentcontainer">
-        
+            
     </div>
     <div>
         <div id="board" style="display: flex; justify-content: center;">
@@ -20,9 +11,9 @@
                 <div>
                     <img id="crownicon" width="30" height="30" src="/res/crown-solid.svg" alt="">
                 </div>
-                <div style="display: flex; align-items: center;">
+                <div id="coincontainer" style="display: flex; align-items: center;">
                     <img width="30" height="30" src="/res/coins-solid.svg" alt="">
-                    <span id="money" style="font-size: 25px;">:6</span>
+                    <span id="coins" style="font-size: 25px;">:6</span>
                 </div>
             </div>
             <div id="hand" style="display: flex;">
@@ -30,9 +21,8 @@
             
         </div>
     </div>
-    
-    <div id="endturnbutton" class="endturnbutton" style=>
+
+    <button id="endturnbutton" class="endturnbutton" style=>
         end turn
-    </div>
-</body>
-</html>
+    </button>
+</div>`
