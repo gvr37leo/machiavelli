@@ -50,11 +50,18 @@ function endturn(){
 }
 
 function start(){
-
+    ws.send('start',{})
 }
 
 function reset(){
+    ws.send('reset',{})
+}
 
+function playcard(cardindex){
+    ws.send('playcard',{
+        playerid,
+        cardindex,
+    })
 }
 
 function renderPlayerPerspective(gamedb,player:Player){

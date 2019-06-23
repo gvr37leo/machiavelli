@@ -33,6 +33,12 @@ wss.on('connection', function connection(ws) {
         updateClients()
     })
     
+    wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
+    wsbox.listen('start',data => onStart.trigger(data,null))
+    wsbox.listen('reset',data => onReset.trigger(data,null))
+    wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
+    
+
     updateClients()
 });
 
@@ -41,6 +47,8 @@ var gamedb = genGameDB()
 
 var onPlayCard = new EventSystem<{playerid:number,handindex:number}>()
 var onEndTurn = new EventSystem<{playerid:number}>()
+var onStart = new EventSystem<{playerid:number}>()
+var onReset = new EventSystem<{playerid:number}>()
 var onDiscoverRole = new EventSystem<{playerid:number,roleindex:number}>()
 var onDiscoverPlayer = new EventSystem<{playerid:number,playerindex:number}>()
 var onDiscoverCard = new EventSystem<{playerid:number,cardindex:number}>()
