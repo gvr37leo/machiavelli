@@ -79,18 +79,26 @@ function renderPlayerPerspective(gamedb,player:Player){
     var coins = boardelement.querySelector('#coins')
     var hand = boardelement.querySelector('#hand')
 
+    if(player.isDiscoveringRoles){
+
+    }else if(player.isDiscoveringPlayers){
+
+    }else if(player.isDiscoveringCards){
+        
+    }
+
     crownicon.style.visibility = 'hidden'
     if(gamedb.crownWearer == player.id){
         crownicon.style.visibility = 'visible'
     }
     
     for(var cardid of player.hand){
-        var card = gamedb.cards.get(cardid)
+        var card = gamedb.cards.find(c => c.id == cardid)
         hand.append(genCardHtml(gamedb,card))
     }
 
     for(var buildingid of player.buildings){
-        var building = gamedb.cards.get(buildingid)
+        var building = gamedb.cards.find(c => c.id == cardid)
         board.append(genCardHtml(gamedb,building))
     }
 
@@ -109,7 +117,7 @@ function genCardHtml(gamedb,card:Card){
     var color = cardelement.querySelector('#color') as HTMLElement
     name.innerHTML = card.name
     cost.innerHTML = card.cost as any
-    color.style.backgroundColor = gamedb.roles.get(card.role).color
+    color.style.backgroundColor = gamedb.roles.find(r => r.id == card.role).color
     return cardelement
 }
 

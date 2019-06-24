@@ -34,7 +34,7 @@ wss.on('connection', function connection(ws) {
     })
     
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
-    wsbox.listen('start',data => onStart.trigger(data,null))
+    wsbox.listen('start',data => entiregame())
     wsbox.listen('reset',data => onReset.trigger(data,null))
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
     
@@ -72,6 +72,7 @@ function chooseRoles(){
 async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
     player.isDiscoveringRoles = true
     player.discoverRoles = roles.map(r => r.id)
+    updateClients()
     return new Promise((res,rej) => {
         onDiscoverRole.listen(data => {
             if(data.playerid == player.id){
@@ -88,6 +89,7 @@ async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
 async function discoverCards(player:Player,cards:Card[]):Promise<Card>{
     player.isDiscoveringCards = true
     player.discoverCards = cards.map(r => r.id)
+    updateClients()
     return new Promise((res,rej) => {
         onDiscoverCard.listen(data => {
             if(data.playerid == player.id){
@@ -104,6 +106,7 @@ async function discoverCards(player:Player,cards:Card[]):Promise<Card>{
 async function discoverPlayers(player:Player,players:Player[]):Promise<Player>{
     player.isDiscoveringPlayers = true
     player.discoverPlayers = players.map(r => r.id)
+    updateClients()
     return new Promise((res,rej) => {
         onDiscoverPlayer.listen(data => {
             if(data.playerid == player.id){
@@ -182,7 +185,6 @@ async function entiregame(){
     })
     gamedb.playerTurn = randomInt(0,gamedb.players.map.size)
     
-
     while(gamedb.firstFinishedPlayer == null){
         await round()
         gamedb.playerTurn = (gamedb.playerTurn + 1) % gamedb.players.map.size

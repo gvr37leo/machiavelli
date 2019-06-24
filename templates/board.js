@@ -22,6 +22,10 @@ var boardhtml = `<div>
         </div>
     </div>
 
+    <div id="discoverContainer">
+        
+    <div>
+
     <button id="endturnbutton" class="endturnbutton" style=>
         end turn
     </button>
