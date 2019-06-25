@@ -37,6 +37,8 @@ wss.on('connection', function connection(ws) {
     wsbox.listen('start',data => entiregame())
     wsbox.listen('reset',data => onReset.trigger(data,null))
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
+    wsbox.listen('discover',data => onDiscover.trigger(data,null))
+    
     
 
     updateClients()
@@ -49,9 +51,7 @@ var onPlayCard = new EventSystem<{playerid:number,handindex:number}>()
 var onEndTurn = new EventSystem<{playerid:number}>()
 var onStart = new EventSystem<{playerid:number}>()
 var onReset = new EventSystem<{playerid:number}>()
-var onDiscoverRole = new EventSystem<{playerid:number,roleindex:number}>()
-var onDiscoverPlayer = new EventSystem<{playerid:number,playerindex:number}>()
-var onDiscoverCard = new EventSystem<{playerid:number,cardindex:number}>()
+var onDiscover = new EventSystem<{playerid:number,discoverindex:number}>()
 
 function updateClients(){
     for(var player of gamedb.players.list()){
@@ -67,17 +67,15 @@ function chooseRoles(){
     shuffle(roleReference)
 }
 
-
-
 async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
     player.isDiscoveringRoles = true
     player.discoverRoles = roles.map(r => r.id)
     updateClients()
     return new Promise((res,rej) => {
-        onDiscoverRole.listen(data => {
+        onDiscover.listen(data => {
             if(data.playerid == player.id){
                 player.isDiscoveringRoles = false
-                var discoveredRole = player.discoverRoles[data.roleindex]
+                var discoveredRole = player.discoverRoles[data.discoverindex]
                 player.discoverRoles = []
                 res(gamedb.roles.get(discoveredRole))
             }
@@ -91,10 +89,10 @@ async function discoverCards(player:Player,cards:Card[]):Promise<Card>{
     player.discoverCards = cards.map(r => r.id)
     updateClients()
     return new Promise((res,rej) => {
-        onDiscoverCard.listen(data => {
+        onDiscover.listen(data => {
             if(data.playerid == player.id){
                 player.isDiscoveringCards = false
-                var discoveredCard = player.discoverCards[data.cardindex]
+                var discoveredCard = player.discoverCards[data.discoverindex]
                 player.discoverCards = []
                 res(gamedb.cards.get(discoveredCard))
             }
@@ -108,10 +106,10 @@ async function discoverPlayers(player:Player,players:Player[]):Promise<Player>{
     player.discoverPlayers = players.map(r => r.id)
     updateClients()
     return new Promise((res,rej) => {
-        onDiscoverPlayer.listen(data => {
+        onDiscover.listen(data => {
             if(data.playerid == player.id){
                 player.isDiscoveringPlayers = false
-                var discoveredRole = player.discoverPlayers[data.playerindex]
+                var discoveredRole = player.discoverPlayers[data.discoverindex]
                 player.discoverPlayers = []
                 res(gamedb.players.get(discoveredRole))
             }

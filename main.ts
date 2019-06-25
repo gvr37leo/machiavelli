@@ -64,6 +64,13 @@ function playcard(cardindex){
     })
 }
 
+function discovered(discoverindex){
+    ws.send('discover',{
+        playerid,
+        discoverindex,
+    })
+}
+
 function renderPlayerPerspective(gamedb,player:Player){
 
     var boardelement = string2html(boardhtml)
@@ -78,14 +85,29 @@ function renderPlayerPerspective(gamedb,player:Player){
     var hand = boardelement.querySelector('#hand')
     var coins = boardelement.querySelector('#coins')
     var hand = boardelement.querySelector('#hand')
+    var discoverContainer = boardelement.querySelector('#discoverContainer')
 
+    
+    
     if(player.isDiscoveringRoles){
-
+        for(var role of player.discoverRoles.map(rid => gamedb.roles.find(r => r.id == rid))){
+            discoverContainer.append(genRoleCardHtml(role))
+        }
     }else if(player.isDiscoveringPlayers){
-
+        for(var dplayer of player.discoverPlayers.map(rid => gamedb.players.find(r => r.id == rid))){
+            discoverContainer.append(genPlayerCardHtml(dplayer))
+        }
     }else if(player.isDiscoveringCards){
-        
+        for(var card of player.discoverCards.map(rid => gamedb.cards.find(r => r.id == rid))){
+            discoverContainer.append(genCardHtml(gamedb,card))
+        }
     }
+    Array.from(discoverContainer.children).forEach((el,i) => {
+        el.addEventListener('click',e => {
+            discovered(i)
+        })
+    })
+    
 
     crownicon.style.visibility = 'hidden'
     if(gamedb.crownWearer == player.id){
@@ -118,6 +140,22 @@ function genCardHtml(gamedb,card:Card){
     name.innerHTML = card.name
     cost.innerHTML = card.cost as any
     color.style.backgroundColor = gamedb.roles.find(r => r.id == card.role).color
+    return cardelement
+}
+
+function genRoleCardHtml(role:Role){
+    var cardelement = string2html(rolecardhtml)
+    var name = cardelement.querySelector('#name')
+    var color = cardelement.querySelector('#color') as HTMLElement
+    name.innerHTML = role.name
+    color.style.backgroundColor = role.color
+    return cardelement
+}
+
+function genPlayerCardHtml(card:Player){
+    var cardelement = string2html(playercardhtml)
+    var name = cardelement.querySelector('#name')
+    name.innerHTML = card.name
     return cardelement
 }
 
