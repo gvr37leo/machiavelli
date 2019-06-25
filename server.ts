@@ -24,7 +24,7 @@ const wss = new myws.Server({ port: 8080 });
  
 wss.on('connection', function connection(ws) {
     var wsbox = new WsBox(ws)
-    var player = new Player(0,0)
+    var player = new Player()
     player.wsbox = wsbox
     gamedb.players.add(player)
 
@@ -72,7 +72,7 @@ async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
     player.discoverRoles = roles.map(r => r.id)
     updateClients()
     return new Promise((res,rej) => {
-        onDiscover.listen(data => {
+        onDiscover.listenOnce(data => {
             if(data.playerid == player.id){
                 player.isDiscoveringRoles = false
                 var discoveredRole = player.discoverRoles[data.discoverindex]
@@ -89,7 +89,7 @@ async function discoverCards(player:Player,cards:Card[]):Promise<Card>{
     player.discoverCards = cards.map(r => r.id)
     updateClients()
     return new Promise((res,rej) => {
-        onDiscover.listen(data => {
+        onDiscover.listenOnce(data => {
             if(data.playerid == player.id){
                 player.isDiscoveringCards = false
                 var discoveredCard = player.discoverCards[data.discoverindex]
@@ -106,7 +106,7 @@ async function discoverPlayers(player:Player,players:Player[]):Promise<Player>{
     player.discoverPlayers = players.map(r => r.id)
     updateClients()
     return new Promise((res,rej) => {
-        onDiscover.listen(data => {
+        onDiscover.listenOnce(data => {
             if(data.playerid == player.id){
                 player.isDiscoveringPlayers = false
                 var discoveredRole = player.discoverPlayers[data.discoverindex]
@@ -137,7 +137,7 @@ function mulligan(playerid:number){
 
 function countBuildingIncome(player:Player){
     return player.buildings.reduce((prev,cur) => {
-        return prev + (gamedb.cards.get(cur).role == player.role ? 1 : 0)
+        return prev + (gamedb.roles.get(gamedb.cards.get(cur).role).player == player.id ? 1 : 0)
     },0)
 }
 
@@ -202,15 +202,16 @@ async function round(){
     }
 
     roledeck.splice(0,1)//await/coroutine show this role to the king
-    await discoverRoles(gamedb.players.get(gamedb.playerTurn),roledeck.map(rid => gamedb.roles.get(rid)))
+    var kingrole = await discoverRoles(gamedb.players.get(gamedb.playerTurn),roledeck.map(rid => gamedb.roles.get(rid)))
 
 
     roledeck.push(3)
     shuffle(roledeck)
-    for(var i = 0;roledeck.length > 1; i++){
-        var role = await discoverRoles(null,roledeck.map(rid => gamedb.roles.get(rid)))
+    for(var i = 1;roledeck.length > 1; i++){
+        var player = gamedb.players.list()[i % gamedb.players.map.size]
+        var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)))
         findAndDelete(roledeck,role.id)
-        gamedb.players.get(i).role = role.id
+        role.player = player.id
     }
 
     for(var player of gamedb.players.list()){
@@ -223,35 +224,35 @@ async function playerTurn(player:Player){
     // inkomsten of kaarten trekken
 
 
-    if(player.role == 0){//moordenaar
+    if(gamedb.roles.get(0).player == player.id){//moordenaar
         gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
     }
-    if(player.role == 1){//dief
+    if(gamedb.roles.get(1).player == player.id){//dief
         gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
     }
-    if(player.role == 2){//magier
+    if(gamedb.roles.get(2).player == player.id){//magier
         var swapPlayer:Player = await discoverOtherPlayers(player);
         [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
         // mulligan(player.id)
 
     }
-    if(player.role == 3){//koning
+    if(gamedb.roles.get(3).player == player.id){//koning
         gamedb.crownWearer = player.id
         player.money += countBuildingIncome(player)
     }
-    if(player.role == 4){//prediker
+    if(gamedb.roles.get(4).player == player.id){//prediker
         player.money += countBuildingIncome(player)
     }
-    if(player.role == 5){//koopman
+    if(gamedb.roles.get(5).player == player.id){//koopman
         player.money++
         player.money += countBuildingIncome(player)
     }
-    if(player.role == 6){//bouwmeester
+    if(gamedb.roles.get(6).player == player.id){//bouwmeester
         //trek 2 kaarten
         //build 2 buildings
     }
 
-    if(player.role == 7){//condotierre
+    if(gamedb.roles.get(7).player == player.id){//condotierre
         player.money += countBuildingIncome(player)
         discoverOtherPlayers(player).then(chosenPlayer => {
             discoverCards(player,chosenPlayer.buildings.map(bid => gamedb.cards.get(bid))).then(chosenBuilding => {

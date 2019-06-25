@@ -24,7 +24,7 @@ var boardhtml = `<div>
 
     <div id="discoverContainer">
         
-    <div>
+    </div>
 
     <button id="endturnbutton" class="endturnbutton" style=>
         end turn

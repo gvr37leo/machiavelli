@@ -31,6 +31,7 @@ class GameDB{
 
 class Role{
     id:number
+    player:number
     constructor(public name:string,public color:string,public image:number,){
 
     }
@@ -42,6 +43,7 @@ class Player{
     hand:number[] = []
     buildings:number[] = []
     wsbox:WsBox
+    money:number = 0
 
     isDiscoveringRoles:boolean = false
     discoverRoles:number[] = []
@@ -50,7 +52,7 @@ class Player{
     isDiscoveringCards:boolean = false
     discoverCards:number[] = []
 
-    constructor(public money:number,public role:number,){
+    constructor(){
 
     }
 
@@ -67,7 +69,6 @@ class Player{
             isDiscoveringCards:this.isDiscoveringCards,
             discoverCards:this.discoverCards,
             money:this.money,
-            role:this.role,
         }
     }
 }

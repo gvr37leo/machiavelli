@@ -29,4 +29,6 @@ class Store<T>{
     list(){
         return Array.from(this.map.values())
     }
+
+    
 }
