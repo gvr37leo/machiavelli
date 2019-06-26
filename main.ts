@@ -46,7 +46,7 @@ ws.listen('update',updatedata => {
 })
 
 function endturn(){
-    ws.send('endturn',{})
+    ws.send('endturn',{playerid})
 }
 
 function start(){
@@ -86,7 +86,7 @@ function renderPlayerPerspective(gamedb,player:Player){
     var coins = boardelement.querySelector('#coins')
     var hand = boardelement.querySelector('#hand')
     var discoverContainer = boardelement.querySelector('#discoverContainer')
-
+    endturnbutton.addEventListener('click',() => endturn(player.id))
     
     
     if(player.isDiscoveringRoles){
@@ -114,13 +114,18 @@ function renderPlayerPerspective(gamedb,player:Player){
         crownicon.style.visibility = 'visible'
     }
     
-    for(var cardid of player.hand){
+    for(let i = 0; i < player.hand.length; i++){
+        var cardid = player.hand[i]
         var card = gamedb.cards.find(c => c.id == cardid)
-        hand.append(genCardHtml(gamedb,card))
+        var cardelement = genCardHtml(gamedb,card)
+        cardelement.addEventListener('click',e => {
+            playcard(i)
+        })
+        hand.append(cardelement)
     }
 
     for(var buildingid of player.buildings){
-        var building = gamedb.cards.find(c => c.id == cardid)
+        var building = gamedb.cards.find(c => c.id == buildingid)
         board.append(genCardHtml(gamedb,building))
     }
 
@@ -132,7 +137,6 @@ function renderPlayerPerspective(gamedb,player:Player){
 }
 
 function genCardHtml(gamedb,card:Card){
-
     var cardelement = string2html(cardhtml)
     var name = cardelement.querySelector('#name')
     var cost = cardelement.querySelector('#cost')

@@ -32,7 +32,7 @@ class GameDB{
 class Role{
     id:number
     player:number
-    constructor(public name:string,public color:string,public image:number,){
+    constructor(public name:string,public color:string,public image:number){
 
     }
 }
@@ -51,6 +51,8 @@ class Player{
     discoverPlayers:number[] = []
     isDiscoveringCards:boolean = false
     discoverCards:number[] = []
+    isDiscoveringOptions:boolean = false
+    discoverOptions:string[] = []
 
     constructor(){
 

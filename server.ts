@@ -38,6 +38,8 @@ wss.on('connection', function connection(ws) {
     wsbox.listen('reset',data => onReset.trigger(data,null))
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
     wsbox.listen('discover',data => onDiscover.trigger(data,null))
+    wsbox.listen('playcard',data => onPlayCard.trigger(data,null))
+    
     
     
 
@@ -65,6 +67,21 @@ function updateClients(){
 function chooseRoles(){
     var roleReference = [0,1,2,3,4,5,6,7]
     shuffle(roleReference)
+}
+
+async function discoverOptions(player:Player,options:string[]):Promise<number>{
+    player.isDiscoveringOptions = true
+    player.discoverOptions = options
+    updateClients()
+    return new Promise((res,rej) => {
+        onDiscover.listenOnce(data => {
+            if(data.playerid == player.id){
+                player.isDiscoveringOptions = false
+                player.discoverOptions = []
+                res(data.discoverindex)
+            }
+        })
+    })
 }
 
 async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
@@ -131,7 +148,7 @@ function shuffle<T>(array:T[]):T[]{
     return array;
 }
 
-function mulligan(playerid:number){
+async function mulligan(playerid:number){
 
 }
 
@@ -207,6 +224,8 @@ async function round(){
 
     roledeck.push(3)
     shuffle(roledeck)
+
+    gamedb.roles.list().forEach(r => r.player = null)
     for(var i = 1;roledeck.length > 1; i++){
         var player = gamedb.players.list()[i % gamedb.players.map.size]
         var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)))
@@ -223,7 +242,6 @@ async function playerTurn(player:Player){
     player.money += 2
     // inkomsten of kaarten trekken
 
-
     if(gamedb.roles.get(0).player == player.id){//moordenaar
         gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
     }
@@ -231,8 +249,10 @@ async function playerTurn(player:Player){
         gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
     }
     if(gamedb.roles.get(2).player == player.id){//magier
-        var swapPlayer:Player = await discoverOtherPlayers(player);
-        [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
+        if(gamedb.players.map.size > 1){
+            var swapPlayer:Player = await discoverOtherPlayers(player);
+            [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
+        }
         // mulligan(player.id)
 
     }
@@ -254,22 +274,35 @@ async function playerTurn(player:Player){
 
     if(gamedb.roles.get(7).player == player.id){//condotierre
         player.money += countBuildingIncome(player)
-        discoverOtherPlayers(player).then(chosenPlayer => {
-            discoverCards(player,chosenPlayer.buildings.map(bid => gamedb.cards.get(bid))).then(chosenBuilding => {
-                player.money -= chosenBuilding.cost - 1
-                findAndDelete(player.buildings,chosenBuilding)
+        if(gamedb.players.map.size > 1){
+            discoverOtherPlayers(player).then(chosenPlayer => {
+                discoverCards(player,chosenPlayer.buildings.map(bid => gamedb.cards.get(bid))).then(chosenBuilding => {
+                    player.money -= chosenBuilding.cost - 1
+                    findAndDelete(player.buildings,chosenBuilding)
+                })
             })
-        })
+        }
     }
 
+    
+    //build buildings and end turn
+    //listen for playcard event
+    var onPlayCardcb = (data:{playerid:number,handindex:number}) => {
+        if(data.playerid == player.id){
+
+        }
+    }
+    onPlayCard.listen(onPlayCardcb)
+    updateClients()
     await new Promise((res,rej) => {
-        onEndTurn.listen(p => {
+        onEndTurn.listenOnce(p => {
             if(p.playerid == player.id){
+                onPlayCard.deafen(onPlayCardcb)
                 res()
             }
         })
     })
-    //build buildings and end turn
+    
 }
 
 
