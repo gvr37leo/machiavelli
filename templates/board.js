@@ -16,7 +16,7 @@ var boardhtml = `<div>
                     <span id="coins" style="font-size: 25px;">:6</span>
                 </div>
             </div>
-            <div id="hand" style="display: flex;">
+            <div id="hand" style="display: flex; justify-content: center; flex-grow: 1;">
             </div>
             
         </div>

@@ -69,9 +69,10 @@ function chooseRoles(){
     shuffle(roleReference)
 }
 
-async function discover(player:Player,options:DiscoverOption[]):Promise<number>{
+async function discover(player:Player,options:DiscoverOption[],discoverDescription:string):Promise<number>{
     player.isDiscovering = true
     player.discoverOptions = options
+    player.discoverDescription = discoverDescription
     updateClients()
     return new Promise((res,rej) => {
         onDiscover.listenOnce(data => {
@@ -84,24 +85,24 @@ async function discover(player:Player,options:DiscoverOption[]):Promise<number>{
     })
 }
 
-async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
-    return roles[await discover(player,roles.map(r => new DiscoverOption(r.image,r.name,0,r.color,'')))]
+async function discoverRoles(player:Player,roles:Role[],discoverDescription:string):Promise<Role>{
+    return roles[await discover(player,roles.map(r => new DiscoverOption(r.image,r.name,0,r.color,'')),discoverDescription)]
 }
 
-async function discoverCards(player:Player,cards:Card[]):Promise<Card>{
-    return cards[await discover(player,cards.map(c => new DiscoverOption(c.image,c.name,0, gamedb.roles.get(c.role).color,'')))]
+async function discoverCards(player:Player,cards:Card[],discoverDescription:string):Promise<Card>{
+    return cards[await discover(player,cards.map(c => new DiscoverOption(c.image,c.name,0, gamedb.roles.get(c.role).color,'')),discoverDescription)]
 }
 
-async function discoverPlayers(player:Player,players:Player[]):Promise<Player>{
-    return players[await discover(player,players.map(p => new DiscoverOption(0,p.name,0,'','')))]
+async function discoverPlayers(player:Player,players:Player[],discoverDescription:string):Promise<Player>{
+    return players[await discover(player,players.map(p => new DiscoverOption(0,p.name,0,'','')),discoverDescription)]
 }
 
-async function discoverOptions(player:Player,options:string[]):Promise<number>{
-    return discover(player,options.map(o => new DiscoverOption(0,'',0,'',o)))
+async function discoverOptions(player:Player,options:string[],discoverDescription:string):Promise<number>{
+    return discover(player,options.map(o => new DiscoverOption(0,'',0,'',o)),discoverDescription)
 }
 
-async function discoverOtherPlayers(player:Player):Promise<Player>{
-    return discoverPlayers(player,gamedb.players.list().filter(p => p.id != player.id))
+async function discoverOtherPlayers(player:Player,discoverDescription:string):Promise<Player>{
+    return discoverPlayers(player,gamedb.players.list().filter(p => p.id != player.id),discoverDescription)
 }
 
 function shuffle<T>(array:T[]):T[]{
@@ -185,7 +186,7 @@ async function round(){
     }
 
     roledeck.splice(0,1)//await/coroutine show this role to the king
-    var kingrole = await discoverRoles(gamedb.players.get(gamedb.playerTurn),roledeck.map(rid => gamedb.roles.get(rid)))
+    var kingrole = await discoverRoles(gamedb.players.get(gamedb.playerTurn),roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
 
 
     roledeck.push(3)
@@ -194,7 +195,7 @@ async function round(){
     gamedb.roles.list().forEach(r => r.player = null)
     for(var i = 1;roledeck.length > 1; i++){
         var player = gamedb.players.list()[i % gamedb.players.map.size]
-        var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)))
+        var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
         findAndDelete(roledeck,role.id)
         role.player = player.id
     }
@@ -210,17 +211,21 @@ async function playerTurn(player:Player){
     
 
     if(gamedb.roles.get(0).player == player.id){//moordenaar
-        gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
+        gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
     }
     if(gamedb.roles.get(1).player == player.id){//dief
-        gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
+        gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
     }
     if(gamedb.roles.get(2).player == player.id){//magier
+        
         if(gamedb.players.map.size > 1){
-            var swapPlayer:Player = await discoverOtherPlayers(player);
-            [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
+            if(await discoverOptions(player,['swap','mulligan'],'swap met een andere speler of ruil met het dek') == 0){
+                var swapPlayer:Player = await discoverOtherPlayers(player,'kies om een speler om mee van kaarten te ruilen');
+                [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
+            }else{
+                // mulligan(player.id)
+            }
         }
-        // mulligan(player.id)
 
     }
     if(gamedb.roles.get(3).player == player.id){//koning
@@ -243,8 +248,8 @@ async function playerTurn(player:Player){
     if(gamedb.roles.get(7).player == player.id){//condotierre
         player.money += countBuildingIncome(player)
         if(gamedb.players.map.size > 1){
-            discoverOtherPlayers(player).then(chosenPlayer => {
-                discoverCards(player,chosenPlayer.buildings.map(bid => gamedb.cards.get(bid))).then(chosenBuilding => {
+            discoverOtherPlayers(player,'kies een speler om een van zijn gebouwen te verbranden').then(chosenPlayer => {
+                discoverCards(player,chosenPlayer.buildings.map(bid => gamedb.cards.get(bid)),'kies een gebouw om te verbranden').then(chosenBuilding => {
                     player.money -= chosenBuilding.cost - 1
                     findAndDelete(player.buildings,chosenBuilding)
                 })
@@ -252,24 +257,27 @@ async function playerTurn(player:Player){
         }
     }
 
-    var decision = await discoverOptions(player,['2 goudstukken', 'kaarten trekken'])
+    var decision = await discoverOptions(player,['2 goudstukken', 'kaarten trekken'],'geld of kaarten')
     if(decision == 0){
         player.money += 2
     }else{
-        var card = await discoverCards(player, gamedb.deck.splice(0,2).map(cid => gamedb.cards.get(cid)))
+        var card = await discoverCards(player, gamedb.deck.splice(0,2).map(cid => gamedb.cards.get(cid)),'kies een kaart')
         player.hand.push(card.id)
     }
     
     //build buildings and end turn
     //listen for playcard event
     var onPlayCardcb = (data:{playerid:number,handindex:number}) => {
-        if(data.playerid == player.id && buildlimit > 0){
+        var card = gamedb.cards.get(player.hand[data.handindex])
+        if(data.playerid == player.id && buildlimit > 0 && card.cost <= player.money){//money check
+            player.money -= card.cost
             buildlimit--
             
             player.buildings.push(player.hand.splice(data.handindex,1)[0])//eerst duplicate building check
             if(player.buildings.length >= 8 && gamedb.firstFinishedPlayer == null){
                 gamedb.firstFinishedPlayer = player.id
             }
+            updateClients()
         }
     }
     onPlayCard.listen(onPlayCardcb)

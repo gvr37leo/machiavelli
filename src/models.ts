@@ -59,6 +59,7 @@ class Player{
 
     isDiscovering:boolean = false
     discoverOptions:DiscoverOption[] = []
+    discoverDescription:string = ''
 
 
     constructor(){

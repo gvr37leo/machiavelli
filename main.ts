@@ -17,42 +17,42 @@ ws.listen('update',updatedata => {
     renderPlayerPerspective(updatedata.gamedb,updatedata.gamedb.players.find(p => p.id == updatedata.playerid))
 })
 var images = [
-    'persoon',
-    'moordenaar',
-    'dief',
-    'magier',
-    'koning',
-    'prediker',
-    'koopman',
-    'bouwmeester',
-    'condotierre',
-    'jachtslot',
-    'slot',
-    'paleis',
-    'tempel',
-    '/res/kerk.jpg',
-    'abdij',
-    'kathedraal',
-    'taveerne',
-    'gildehuis',
-    'markt',
-    'handelshuis',
-    'haven',
-    'raadhuis',
-    'wachttoren',
-    'kerker',
-    'toernooiveld',
-    'vesting',
-    'hof der wonderen',
-    'verdedigingstoren',
-    'laboratorium',
-    'smederij',
-    'observatorium',
-    'kerkhof',
-    'bibliotheek',
-    'school voor magiers',
-    'drakenburcht',
-    'universiteit',
+    '/res/persoon.png',
+    '/res/moordenaar.png',
+    '/res/dief.png',
+    '/res/magier.png',
+    '/res/koning.png',
+    '/res/prediker.png',
+    '/res/koopman.png',
+    '/res/bouwmeester.png',
+    '/res/condotierre.png',
+    '/res/jachtslot.png',
+    '/res/slot.png',
+    '/res/paleis.png',
+    '/res/tempel.png',
+    '/res/kerk.png',
+    '/res/abdij.png',
+    '/res/kathedraal.png',
+    '/res/taveerne.png',
+    '/res/gildehuis.png',
+    '/res/markt.png',
+    '/res/handelshuis.png',
+    '/res/haven.png',
+    '/res/raadhuis.png',
+    '/res/wachttoren.png',
+    '/res/kerker.png',
+    '/res/toernooiveld.png',
+    '/res/vesting.png',
+    '/res/hofderwonderen.png',
+    '/res/verdedigingstoren.png',
+    '/res/laboratorium.png',
+    '/res/smederij.png',
+    '/res/observatorium.png',
+    '/res/kerkhof.png',
+    '/res/bibliotheek.png',
+    '/res/schoolvoormagiers.png',
+    '/res/drakenburcht.png',
+    '/res/universiteit.png',
 ]
 
 function endturn(playerid){
@@ -147,9 +147,11 @@ function genDiscoverOptionCard(d:DiscoverOption){
     var name = cardelement.querySelector('#name')
     var cost = cardelement.querySelector('#cost')
     var color = cardelement.querySelector('#color') as HTMLElement
+    var description = cardelement.querySelector('#description')
     name.innerHTML = d.name
     cost.innerHTML = d.cost as any
     color.style.backgroundColor = d.color
+    description.innerHTML = d.description
     return cardelement
 }
 

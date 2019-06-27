@@ -6,5 +6,6 @@ var cardhtml = `<div class="card">
         <div id="name"></div>
         <div id="cost"></div>
         <div id="color" style="width:10px;height:10px;" ></div>
+        <div id="description"></div>
     </div>
 </div>`
