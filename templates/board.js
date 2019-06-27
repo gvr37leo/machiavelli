@@ -22,7 +22,7 @@ var boardhtml = `<div>
         </div>
     </div>
 
-    <div id="discoverContainer">
+    <div id="discoverContainer" style="display: flex; justify-content: center;">
         
     </div>
 

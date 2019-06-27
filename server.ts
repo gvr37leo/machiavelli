@@ -207,12 +207,7 @@ async function round(){
 async function playerTurn(player:Player){
     
     var buildlimit = 1
-    var decision = await discoverOptions(player,['kaarten trekken','2 goudstukken'])
-    if(decision == 0){
-        player.money += 2
-    }else{
-        //kaarten trekken
-    }
+    
 
     if(gamedb.roles.get(0).player == player.id){//moordenaar
         gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
@@ -257,13 +252,21 @@ async function playerTurn(player:Player){
         }
     }
 
+    var decision = await discoverOptions(player,['2 goudstukken', 'kaarten trekken'])
+    if(decision == 0){
+        player.money += 2
+    }else{
+        var card = await discoverCards(player, gamedb.deck.splice(0,2).map(cid => gamedb.cards.get(cid)))
+        player.hand.push(card.id)
+    }
     
     //build buildings and end turn
     //listen for playcard event
     var onPlayCardcb = (data:{playerid:number,handindex:number}) => {
         if(data.playerid == player.id && buildlimit > 0){
             buildlimit--
-            player.buildings.push(player.hand.splice(data.handindex,1)[0])
+            
+            player.buildings.push(player.hand.splice(data.handindex,1)[0])//eerst duplicate building check
             if(player.buildings.length >= 8 && gamedb.firstFinishedPlayer == null){
                 gamedb.firstFinishedPlayer = player.id
             }
