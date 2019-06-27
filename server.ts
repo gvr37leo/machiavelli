@@ -69,14 +69,14 @@ function chooseRoles(){
     shuffle(roleReference)
 }
 
-async function discoverOptions(player:Player,options:string[]):Promise<number>{
-    player.isDiscoveringOptions = true
+async function discover(player:Player,options:DiscoverOption[]):Promise<number>{
+    player.isDiscovering = true
     player.discoverOptions = options
     updateClients()
     return new Promise((res,rej) => {
         onDiscover.listenOnce(data => {
             if(data.playerid == player.id){
-                player.isDiscoveringOptions = false
+                player.isDiscovering = false
                 player.discoverOptions = []
                 res(data.discoverindex)
             }
@@ -85,54 +85,19 @@ async function discoverOptions(player:Player,options:string[]):Promise<number>{
 }
 
 async function discoverRoles(player:Player,roles:Role[]):Promise<Role>{
-    player.isDiscoveringRoles = true
-    player.discoverRoles = roles.map(r => r.id)
-    updateClients()
-    return new Promise((res,rej) => {
-        onDiscover.listenOnce(data => {
-            if(data.playerid == player.id){
-                player.isDiscoveringRoles = false
-                var discoveredRole = player.discoverRoles[data.discoverindex]
-                player.discoverRoles = []
-                res(gamedb.roles.get(discoveredRole))
-            }
-        })
-
-    })
+    return roles[await discover(player,roles.map(r => new DiscoverOption(r.image,r.name,0,r.color,'')))]
 }
 
 async function discoverCards(player:Player,cards:Card[]):Promise<Card>{
-    player.isDiscoveringCards = true
-    player.discoverCards = cards.map(r => r.id)
-    updateClients()
-    return new Promise((res,rej) => {
-        onDiscover.listenOnce(data => {
-            if(data.playerid == player.id){
-                player.isDiscoveringCards = false
-                var discoveredCard = player.discoverCards[data.discoverindex]
-                player.discoverCards = []
-                res(gamedb.cards.get(discoveredCard))
-            }
-        })
-
-    })
+    return cards[await discover(player,cards.map(c => new DiscoverOption(c.image,c.name,0, gamedb.roles.get(c.role).color,'')))]
 }
 
 async function discoverPlayers(player:Player,players:Player[]):Promise<Player>{
-    player.isDiscoveringPlayers = true
-    player.discoverPlayers = players.map(r => r.id)
-    updateClients()
-    return new Promise((res,rej) => {
-        onDiscover.listenOnce(data => {
-            if(data.playerid == player.id){
-                player.isDiscoveringPlayers = false
-                var discoveredRole = player.discoverPlayers[data.discoverindex]
-                player.discoverPlayers = []
-                res(gamedb.players.get(discoveredRole))
-            }
-        })
+    return players[await discover(player,players.map(p => new DiscoverOption(0,p.name,0,'','')))]
+}
 
-    })
+async function discoverOptions(player:Player,options:string[]):Promise<number>{
+    return discover(player,options.map(o => new DiscoverOption(0,'',0,'',o)))
 }
 
 async function discoverOtherPlayers(player:Player):Promise<Player>{
@@ -204,7 +169,8 @@ async function entiregame(){
         await round()
         gamedb.playerTurn = (gamedb.playerTurn + 1) % gamedb.players.map.size
     }
-    countScores(gamedb.firstFinishedPlayer,gamedb.players.list())
+    var scores = countScores(gamedb.firstFinishedPlayer,gamedb.players.list())
+    var winner = gamedb.players.list()[findBestIndex(scores,s => s)]
 }
 
 async function round(){
@@ -239,8 +205,14 @@ async function round(){
 }
 
 async function playerTurn(player:Player){
-    player.money += 2
-    // inkomsten of kaarten trekken
+    
+    var buildlimit = 1
+    var decision = await discoverOptions(player,['kaarten trekken','2 goudstukken'])
+    if(decision == 0){
+        player.money += 2
+    }else{
+        //kaarten trekken
+    }
 
     if(gamedb.roles.get(0).player == player.id){//moordenaar
         gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)))).id
@@ -268,6 +240,7 @@ async function playerTurn(player:Player){
         player.money += countBuildingIncome(player)
     }
     if(gamedb.roles.get(6).player == player.id){//bouwmeester
+        buildlimit = 2
         //trek 2 kaarten
         //build 2 buildings
     }
@@ -288,8 +261,12 @@ async function playerTurn(player:Player){
     //build buildings and end turn
     //listen for playcard event
     var onPlayCardcb = (data:{playerid:number,handindex:number}) => {
-        if(data.playerid == player.id){
-
+        if(data.playerid == player.id && buildlimit > 0){
+            buildlimit--
+            player.buildings.push(player.hand.splice(data.handindex,1)[0])
+            if(player.buildings.length >= 8 && gamedb.firstFinishedPlayer == null){
+                gamedb.firstFinishedPlayer = player.id
+            }
         }
     }
     onPlayCard.listen(onPlayCardcb)

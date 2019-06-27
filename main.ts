@@ -7,45 +7,55 @@
 /// <reference path="templates/card.js" />
 /// <reference path="templates/opponent.js" />
 /// <reference path="templates/board.js" />
+/// <reference path="src/wsBox.ts" />
 
-class WsBox{
-    socket: WebSocket;
 
-    constructor(url:string){
-        this.socket = new WebSocket(url)
-        this.socket.addEventListener('open', () => {
-
-        })
-
-        this.socket.addEventListener('close', () => {
-
-        })
-    }
-
-    send(type:string,data:any){
-        this.socket.send(JSON.stringify({
-            type:type,
-            data:data,
-        }))
-    }
-
-    listen(type:string,cb:(data:any) => void){
-        this.socket.addEventListener('message',e => {
-            var res = JSON.parse(e.data)
-            if(res.type == type){
-                cb(res.data)
-            }
-        })
-    }
-}
 var playerid;
 var ws = new WsBox('ws://localhost:8080')
 ws.listen('update',updatedata => {
     playerid = updatedata.playerid
     renderPlayerPerspective(updatedata.gamedb,updatedata.gamedb.players.find(p => p.id == updatedata.playerid))
 })
+var images = [
+    'persoon',
+    'moordenaar',
+    'dief',
+    'magier',
+    'koning',
+    'prediker',
+    'koopman',
+    'bouwmeester',
+    'condotierre',
+    'jachtslot',
+    'slot',
+    'paleis',
+    'tempel',
+    '/res/kerk.jpg',
+    'abdij',
+    'kathedraal',
+    'taveerne',
+    'gildehuis',
+    'markt',
+    'handelshuis',
+    'haven',
+    'raadhuis',
+    'wachttoren',
+    'kerker',
+    'toernooiveld',
+    'vesting',
+    'hof der wonderen',
+    'verdedigingstoren',
+    'laboratorium',
+    'smederij',
+    'observatorium',
+    'kerkhof',
+    'bibliotheek',
+    'school voor magiers',
+    'drakenburcht',
+    'universiteit',
+]
 
-function endturn(){
+function endturn(playerid){
     ws.send('endturn',{playerid})
 }
 
@@ -89,17 +99,9 @@ function renderPlayerPerspective(gamedb,player:Player){
     endturnbutton.addEventListener('click',() => endturn(player.id))
     
     
-    if(player.isDiscoveringRoles){
-        for(var role of player.discoverRoles.map(rid => gamedb.roles.find(r => r.id == rid))){
-            discoverContainer.append(genRoleCardHtml(role))
-        }
-    }else if(player.isDiscoveringPlayers){
-        for(var dplayer of player.discoverPlayers.map(rid => gamedb.players.find(r => r.id == rid))){
-            discoverContainer.append(genPlayerCardHtml(dplayer))
-        }
-    }else if(player.isDiscoveringCards){
-        for(var card of player.discoverCards.map(rid => gamedb.cards.find(r => r.id == rid))){
-            discoverContainer.append(genCardHtml(gamedb,card))
+    if(player.isDiscovering){
+        for(var option of player.discoverOptions){
+            discoverContainer.append(genDiscoverOptionCard(option))
         }
     }
     Array.from(discoverContainer.children).forEach((el,i) => {
@@ -137,29 +139,17 @@ function renderPlayerPerspective(gamedb,player:Player){
 }
 
 function genCardHtml(gamedb,card:Card){
+    return genDiscoverOptionCard(new DiscoverOption(0,card.name,card.cost,gamedb.roles.find(r => r.id == card.role).color,''))
+}
+
+function genDiscoverOptionCard(d:DiscoverOption){
     var cardelement = string2html(cardhtml)
     var name = cardelement.querySelector('#name')
     var cost = cardelement.querySelector('#cost')
     var color = cardelement.querySelector('#color') as HTMLElement
-    name.innerHTML = card.name
-    cost.innerHTML = card.cost as any
-    color.style.backgroundColor = gamedb.roles.find(r => r.id == card.role).color
-    return cardelement
-}
-
-function genRoleCardHtml(role:Role){
-    var cardelement = string2html(rolecardhtml)
-    var name = cardelement.querySelector('#name')
-    var color = cardelement.querySelector('#color') as HTMLElement
-    name.innerHTML = role.name
-    color.style.backgroundColor = role.color
-    return cardelement
-}
-
-function genPlayerCardHtml(card:Player){
-    var cardelement = string2html(playercardhtml)
-    var name = cardelement.querySelector('#name')
-    name.innerHTML = card.name
+    name.innerHTML = d.name
+    cost.innerHTML = d.cost as any
+    color.style.backgroundColor = d.color
     return cardelement
 }
 

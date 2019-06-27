@@ -17,3 +17,4 @@ function loadImages(urls:string[]):Promise<HTMLImageElement[]>{
 function randomInt(min:number,max:number){
     return Math.floor(random(min,max))
 }
+

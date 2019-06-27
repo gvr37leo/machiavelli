@@ -16,6 +16,26 @@ function swap<T>(arr:T[],a:number = 0,b:number = 1){
     arr[b] = temp;
 }
 
+function findBestIndex<T>(arr:T[],cb:(o:T) => number){
+    if(arr.length == 0){
+        return -1
+    }
+    if(arr.length == 1){
+        return 0
+    }
+    var besti:number = 0
+    var bestscore:number = cb(arr[0])
+
+    for(var i = 1; i < arr.length; i++){
+        var cscore = cb(arr[i])
+        if(cscore > bestscore){
+            besti = i
+            bestscore = cscore
+        }
+    }
+    return besti
+}
+
 class WsBox{
     socket: WebSocket;
 

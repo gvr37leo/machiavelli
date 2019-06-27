@@ -37,6 +37,18 @@ class Role{
     }
 }
 
+class DiscoverOption{
+    constructor(
+        public image:number,
+        public name:string,
+        public cost:number,
+        public color:string,
+        public description:string,
+    ){
+
+    }
+}
+
 class Player{
     id:number
     name:string
@@ -45,14 +57,9 @@ class Player{
     wsbox:WsBox
     money:number = 0
 
-    isDiscoveringRoles:boolean = false
-    discoverRoles:number[] = []
-    isDiscoveringPlayers:boolean = false
-    discoverPlayers:number[] = []
-    isDiscoveringCards:boolean = false
-    discoverCards:number[] = []
-    isDiscoveringOptions:boolean = false
-    discoverOptions:string[] = []
+    isDiscovering:boolean = false
+    discoverOptions:DiscoverOption[] = []
+
 
     constructor(){
 
@@ -64,12 +71,8 @@ class Player{
             name:this.name,
             hand:this.hand,
             buildings:this.buildings,
-            isDiscoveringRoles:this.isDiscoveringRoles,
-            discoverRoles:this.discoverRoles,
-            isDiscoveringPlayers:this.isDiscoveringPlayers,
-            discoverPlayers:this.discoverPlayers,
-            isDiscoveringCards:this.isDiscoveringCards,
-            discoverCards:this.discoverCards,
+            isDiscovering:this.isDiscovering,
+            discoverOptions:this.discoverOptions,
             money:this.money,
         }
     }
