@@ -10,7 +10,6 @@ class GameDB{
     murderedRole:number = null
     burgledRole:number = null
     firstFinishedPlayer:number = null
-    playerTurn:number
 
     serialize(){
 
@@ -23,7 +22,6 @@ class GameDB{
             murderedRole:this.murderedRole,
             burgledRole:this.burgledRole,
             firstFinishedPlayer:this.firstFinishedPlayer,
-            playerTurn:this.playerTurn,
         }
     }
 

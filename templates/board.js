@@ -8,12 +8,14 @@ var boardhtml = `<div>
         </div>
         <div class="handandinfo" style="display: flex">
             <div class="info">
-                <div>
-                    <img id="crownicon" width="30" height="30" src="/res/crown-solid.svg" alt="">
-                </div>
-                <div id="coincontainer" style="display: flex; align-items: center;">
-                    <img width="30" height="30" src="/res/coins-solid.svg" alt="">
-                    <span id="coins" style="font-size: 25px;"></span>
+                <div class="pamabo">
+                    <div>
+                        <img id="crownicon" width="30" height="30" src="/res/crown-solid.svg" alt="">
+                    </div>
+                    <div id="coincontainer" style="display: flex; align-items: center;">
+                        <img width="30" height="30" src="/res/coins-solid.svg" alt="">
+                        <span id="coins" style="font-size: 25px;"></span>
+                    </div>
                 </div>
                 <div class="pamabo">
                     <div>jouw rollen</div>
