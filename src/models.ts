@@ -75,6 +75,7 @@ class Player{
             isDiscovering:this.isDiscovering,
             discoverOptions:this.discoverOptions,
             money:this.money,
+            discoverDescription:this.discoverDescription
         }
     }
 }
@@ -82,11 +83,10 @@ class Player{
 class Card{
     id:number
     points:number
-    effect
-    image:number
+    
     isAction:boolean = false
     isAnyRole:boolean  = false
-    constructor(public role:number,public cost:number,public name:string){
+    constructor(public role:number,public cost:number,public name:string,public image:number){
 
     }
 }

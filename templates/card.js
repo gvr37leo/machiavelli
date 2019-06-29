@@ -1,6 +1,6 @@
 var cardhtml = `<div class="card">
     <div>
-        <img src="/res/kerk.jpg"/>
+        <img src=""/>
     </div>
     <div style="color:white; display: flex; flex-direction: column;">
         <div id="name"></div>

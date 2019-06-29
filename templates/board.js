@@ -13,17 +13,26 @@ var boardhtml = `<div>
                 </div>
                 <div id="coincontainer" style="display: flex; align-items: center;">
                     <img width="30" height="30" src="/res/coins-solid.svg" alt="">
-                    <span id="coins" style="font-size: 25px;">:6</span>
+                    <span id="coins" style="font-size: 25px;"></span>
+                </div>
+                <div id="ownroles">
+                </div>
+                <div id="murderedrole">
+                </div>
+                <div id="muggedrole">
                 </div>
             </div>
             <div id="hand" style="display: flex; justify-content: center; flex-grow: 1;">
             </div>
-            
         </div>
     </div>
 
-    <div id="discoverContainer" style="display: flex; justify-content: center;">
-        
+    <div style="border:1px solid black; padding: 10px; margin: 10px;">
+        <div id="discoverdescription" style="text-align: center;">
+        </div>
+        <div id="discoverContainer" style="display: flex; justify-content: center;">
+            
+        </div>
     </div>
 
     <button id="endturnbutton" class="endturnbutton" style=>

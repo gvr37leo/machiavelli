@@ -17,7 +17,7 @@ ws.listen('update',updatedata => {
     renderPlayerPerspective(updatedata.gamedb,updatedata.gamedb.players.find(p => p.id == updatedata.playerid))
 })
 var images = [
-    '/res/persoon.png',
+    '/res/person.png',
     '/res/moordenaar.png',
     '/res/dief.png',
     '/res/magier.png',
@@ -53,6 +53,7 @@ var images = [
     '/res/schoolvoormagiers.png',
     '/res/drakenburcht.png',
     '/res/universiteit.png',
+    '/res/cards.png',
 ]
 
 function endturn(playerid){
@@ -67,10 +68,10 @@ function reset(){
     ws.send('reset',{})
 }
 
-function playcard(cardindex){
+function playcard(handindex){
     ws.send('playcard',{
         playerid,
-        cardindex,
+        handindex,
     })
 }
 
@@ -91,13 +92,20 @@ function renderPlayerPerspective(gamedb,player:Player){
     var crownicon = boardelement.querySelector('#crownicon') as HTMLElement
     var opponentcontainer = boardelement.querySelector('#opponentcontainer')
     var board = boardelement.querySelector('#board')
-    var money = boardelement.querySelector('#money')
     var hand = boardelement.querySelector('#hand')
     var coins = boardelement.querySelector('#coins')
     var hand = boardelement.querySelector('#hand')
     var discoverContainer = boardelement.querySelector('#discoverContainer')
-    endturnbutton.addEventListener('click',() => endturn(player.id))
+    var discoverdescription = boardelement.querySelector('#discoverdescription')
+    var ownroles = boardelement.querySelector('#ownroles')
+    var murderedrole = boardelement.querySelector('#murderedrole')
+    var muggedrole = boardelement.querySelector('#muggedrole')
     
+    
+    
+    discoverdescription.innerHTML = player.discoverDescription
+    endturnbutton.addEventListener('click',() => endturn(player.id))
+    coins.innerHTML = player.money as any
     
     if(player.isDiscovering){
         for(var option of player.discoverOptions){
@@ -114,6 +122,20 @@ function renderPlayerPerspective(gamedb,player:Player){
     crownicon.style.visibility = 'hidden'
     if(gamedb.crownWearer == player.id){
         crownicon.style.visibility = 'visible'
+    }
+
+    for(var role of gamedb.roles){
+        ownroles.append(genRoleHtml(gamedb,role))
+    }
+
+    if(gamedb.murderedRole){
+        var role = findbyid(gamedb.roles,gamedb.murderedRole)
+        murderedrole.append(gamedb,role)
+    }
+
+    if(gamedb.burgledRole){
+        var role = findbyid(gamedb.roles,gamedb.burgledRole)
+        murderedrole.append(gamedb,role)
     }
     
     for(let i = 0; i < player.hand.length; i++){
@@ -139,7 +161,11 @@ function renderPlayerPerspective(gamedb,player:Player){
 }
 
 function genCardHtml(gamedb,card:Card){
-    return genDiscoverOptionCard(new DiscoverOption(0,card.name,card.cost,gamedb.roles.find(r => r.id == card.role).color,''))
+    return genDiscoverOptionCard(new DiscoverOption(card.image,card.name,card.cost,gamedb.roles.find(r => r.id == card.role).color,''))
+}
+
+function genRoleHtml(gamedb,role:Role){
+    return genDiscoverOptionCard(new DiscoverOption(role.image,role.name,0,role.color,''))
 }
 
 function genDiscoverOptionCard(d:DiscoverOption){
@@ -148,6 +174,8 @@ function genDiscoverOptionCard(d:DiscoverOption){
     var cost = cardelement.querySelector('#cost')
     var color = cardelement.querySelector('#color') as HTMLElement
     var description = cardelement.querySelector('#description')
+    var img = cardelement.querySelector('img')
+    img.src = images[d.image]
     name.innerHTML = d.name
     cost.innerHTML = d.cost as any
     color.style.backgroundColor = d.color
@@ -170,10 +198,13 @@ function genOpponentHtml(gamedb,player:Player){
     moneycounter.innerHTML = player.money as any
 
     for(var buildingid of player.buildings){
-        var building = gamedb.cards.get(buildingid)
+        var building = findbyid(gamedb.cards, buildingid)
         board.append(genCardHtml(gamedb,building))
     }
 
     return opponentelement
 }
 
+function findbyid(arr:any[],id:number){
+    return arr.find(obj => obj.id == id)
+}

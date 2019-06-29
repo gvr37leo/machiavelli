@@ -79,6 +79,7 @@ async function discover(player:Player,options:DiscoverOption[],discoverDescripti
             if(data.playerid == player.id){
                 player.isDiscovering = false
                 player.discoverOptions = []
+                player.discoverDescription = ''
                 res(data.discoverindex)
             }
         })
@@ -90,7 +91,7 @@ async function discoverRoles(player:Player,roles:Role[],discoverDescription:stri
 }
 
 async function discoverCards(player:Player,cards:Card[],discoverDescription:string):Promise<Card>{
-    return cards[await discover(player,cards.map(c => new DiscoverOption(c.image,c.name,0, gamedb.roles.get(c.role).color,'')),discoverDescription)]
+    return cards[await discover(player,cards.map(c => new DiscoverOption(c.image,c.name,c.cost, gamedb.roles.get(c.role).color,'')),discoverDescription)]
 }
 
 async function discoverPlayers(player:Player,players:Player[],discoverDescription:string):Promise<Player>{
@@ -194,13 +195,14 @@ async function round(){
 
     gamedb.roles.list().forEach(r => r.player = null)
     for(var i = 1;roledeck.length > 1; i++){
-        var player = gamedb.players.list()[i % gamedb.players.map.size]
+        let player = gamedb.players.list()[i % gamedb.players.map.size]
         var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
         findAndDelete(roledeck,role.id)
         role.player = player.id
     }
 
-    for(var player of gamedb.players.list()){
+    for(var role of gamedb.roles.list()){
+        let player = gamedb.players.get(role.player)
         await playerTurn(player)
     }
 }
@@ -268,8 +270,10 @@ async function playerTurn(player:Player){
     //build buildings and end turn
     //listen for playcard event
     var onPlayCardcb = (data:{playerid:number,handindex:number}) => {
-        var card = gamedb.cards.get(player.hand[data.handindex])
-        if(data.playerid == player.id && buildlimit > 0 && card.cost <= player.money){//money check
+        let card = gamedb.cards.get(player.hand[data.handindex])
+        var cardIsntInPlayYet = player.buildings.findIndex(cid => gamedb.cards.get(cid).image == card.image) == -1
+        
+        if(data.playerid == player.id && buildlimit > 0 && card.cost <= player.money && cardIsntInPlayYet){
             player.money -= card.cost
             buildlimit--
             
