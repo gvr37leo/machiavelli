@@ -15,11 +15,20 @@ var boardhtml = `<div>
                     <img width="30" height="30" src="/res/coins-solid.svg" alt="">
                     <span id="coins" style="font-size: 25px;"></span>
                 </div>
-                <div id="ownroles">
+                <div class="pamabo">
+                    <div>jouw rollen</div>
+                    <div id="ownroles">
+                    </div>
                 </div>
-                <div id="murderedrole">
+                <div class="pamabo">
+                    <div>vermoorde rol</div>
+                    <div id="murderedrole">
+                    </div>
                 </div>
-                <div id="muggedrole">
+                <div class="pamabo">
+                    <div>bestolen rol</div>
+                    <div id="muggedrole">
+                    </div>
                 </div>
             </div>
             <div id="hand" style="display: flex; justify-content: center; flex-grow: 1;">
@@ -27,11 +36,13 @@ var boardhtml = `<div>
         </div>
     </div>
 
-    <div style="border:1px solid black; padding: 10px; margin: 10px;">
-        <div id="discoverdescription" style="text-align: center;">
-        </div>
-        <div id="discoverContainer" style="display: flex; justify-content: center;">
-            
+    <div id="discoverabsdiv" style="position:absolute; left:50%; top: 37%;">
+        <div style="border: 1px solid black;padding: 10px;margin: 10px;position: relative;left: -50%;top: -50%;background-color: white;">
+            <div id="discoverdescription" style="text-align: center;">
+            </div>
+            <div id="discoverContainer" style="display: flex; justify-content: center;">
+                
+            </div>
         </div>
     </div>
 

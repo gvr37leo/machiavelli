@@ -7,8 +7,8 @@ class GameDB{
     cards:Store<Card> = new Store()
     crownWearer:number = 0
     deck:number[] = []
-    murderedRole:number = 0
-    burgledRole:number = 0
+    murderedRole:number = null
+    burgledRole:number = null
     firstFinishedPlayer:number = null
     playerTurn:number
 

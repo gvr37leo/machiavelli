@@ -2,8 +2,7 @@
 /// <reference path="store.ts" />
 
 
-
-
+enum RoleId{moordenaar,dief,magier,koning,prediker,koopman,bouwmeester,condotierre,}
 
 function genGameDB(){
     var gamedb = new GameDB()

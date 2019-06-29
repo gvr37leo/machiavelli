@@ -96,11 +96,15 @@ function renderPlayerPerspective(gamedb,player:Player){
     var coins = boardelement.querySelector('#coins')
     var hand = boardelement.querySelector('#hand')
     var discoverContainer = boardelement.querySelector('#discoverContainer')
+    var discoverabsdiv = boardelement.querySelector('#discoverabsdiv') as HTMLElement
+    
     var discoverdescription = boardelement.querySelector('#discoverdescription')
     var ownroles = boardelement.querySelector('#ownroles')
     var murderedrole = boardelement.querySelector('#murderedrole')
     var muggedrole = boardelement.querySelector('#muggedrole')
-    
+    if(player.isDiscovering == false){
+        discoverabsdiv.style.visibility = 'hidden'
+    }
     
     
     discoverdescription.innerHTML = player.discoverDescription
@@ -125,17 +129,19 @@ function renderPlayerPerspective(gamedb,player:Player){
     }
 
     for(var role of gamedb.roles){
-        ownroles.append(genRoleHtml(gamedb,role))
+        if(role.player == player.id){
+            ownroles.append(genRoleHtml(gamedb,role))
+        }
     }
 
     if(gamedb.murderedRole){
         var role = findbyid(gamedb.roles,gamedb.murderedRole)
-        murderedrole.append(gamedb,role)
+        murderedrole.append(genRoleHtml(gamedb,role))
     }
 
     if(gamedb.burgledRole){
         var role = findbyid(gamedb.roles,gamedb.burgledRole)
-        murderedrole.append(gamedb,role)
+        muggedrole.append(genRoleHtml(gamedb,role))
     }
     
     for(let i = 0; i < player.hand.length; i++){

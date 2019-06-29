@@ -203,22 +203,30 @@ async function round(){
 
     for(var role of gamedb.roles.list()){
         let player = gamedb.players.get(role.player)
-        await playerTurn(player)
+        if(player != null && gamedb.murderedRole != player.id){
+            await playerTurn(player)
+        }
     }
 }
 
 async function playerTurn(player:Player){
     
     var buildlimit = 1
-    
-
-    if(gamedb.roles.get(0).player == player.id){//moordenaar
-        gamedb.murderedRole = (await discoverRoles(player,[1,2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
+    if(gamedb.burgledRole == player.id){
+        var burgeldrole = gamedb.roles.get(gamedb.burgledRole)
+        var diefplayer = gamedb.players.get(gamedb.roles.get(RoleId.dief).player)
+        var burgledplayer = gamedb.players.get(burgeldrole.player)
+        diefplayer.money += burgledplayer.money
+        burgledplayer.money = 0
     }
-    if(gamedb.roles.get(1).player == player.id){//dief
+
+    if(gamedb.roles.get(RoleId.moordenaar).player == player.id){//moordenaar
+        gamedb.murderedRole = (await discoverRoles(player,[1,2,3,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
+    }
+    if(gamedb.roles.get(RoleId.dief).player == player.id){//dief
         gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
     }
-    if(gamedb.roles.get(2).player == player.id){//magier
+    if(gamedb.roles.get(RoleId.magier).player == player.id){//magier
         
         if(gamedb.players.map.size > 1){
             if(await discoverOptions(player,['swap','mulligan'],'swap met een andere speler of ruil met het dek') == 0){
@@ -230,24 +238,24 @@ async function playerTurn(player:Player){
         }
 
     }
-    if(gamedb.roles.get(3).player == player.id){//koning
+    if(gamedb.roles.get(RoleId.koning).player == player.id){//koning
         gamedb.crownWearer = player.id
         player.money += countBuildingIncome(player)
     }
-    if(gamedb.roles.get(4).player == player.id){//prediker
+    if(gamedb.roles.get(RoleId.prediker).player == player.id){//prediker
         player.money += countBuildingIncome(player)
     }
-    if(gamedb.roles.get(5).player == player.id){//koopman
+    if(gamedb.roles.get(RoleId.koopman).player == player.id){//koopman
         player.money++
         player.money += countBuildingIncome(player)
     }
-    if(gamedb.roles.get(6).player == player.id){//bouwmeester
+    if(gamedb.roles.get(RoleId.bouwmeester).player == player.id){//bouwmeester
         buildlimit = 2
         //trek 2 kaarten
         //build 2 buildings
     }
 
-    if(gamedb.roles.get(7).player == player.id){//condotierre
+    if(gamedb.roles.get(RoleId.condotierre).player == player.id){//condotierre
         player.money += countBuildingIncome(player)
         if(gamedb.players.map.size > 1){
             discoverOtherPlayers(player,'kies een speler om een van zijn gebouwen te verbranden').then(chosenPlayer => {

@@ -40,3 +40,9 @@ body{
     justify-content: center;
     align-items: center;
 }
+
+.pamabo{
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid black;
+}
