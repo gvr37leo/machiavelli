@@ -10,9 +10,11 @@ class GameDB{
     murderedRole:number = null
     burgledRole:number = null
     firstFinishedPlayer:number = null
+    discardedRoles:number[] = []
+    kingshownRole:number = null
+
 
     serialize(){
-
         return {
             roles:this.roles.list(),
             players:this.players.list().map(p => p.serialize()),
@@ -22,6 +24,8 @@ class GameDB{
             murderedRole:this.murderedRole,
             burgledRole:this.burgledRole,
             firstFinishedPlayer:this.firstFinishedPlayer,
+            discardedRoles:this.discardedRoles,
+            kingshownRole:this.kingshownRole,
         }
     }
 

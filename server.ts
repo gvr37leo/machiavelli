@@ -158,51 +158,55 @@ function countScores(firstPlayerId:number,players:Player[]){
 }
 
 async function entiregame(){
-    //setup money
-    gamedb.crownWearer = randomInt(0,gamedb.players.map.size)
     shuffle(gamedb.deck)
     gamedb.players.list().forEach(p => {
         p.money = 2
         p.hand = p.hand.concat(gamedb.deck.splice(0,4))
     })
     gamedb.crownWearer = randomInt(0,gamedb.players.map.size)
+
     
     while(gamedb.firstFinishedPlayer == null){
         await round()
-        // gamedb.playerTurn = (gamedb.playerTurn + 1) % gamedb.players.map.size
     }
     var scores = countScores(gamedb.firstFinishedPlayer,gamedb.players.list())
-    var winner = gamedb.players.list()[findBestIndex(scores,s => s)]
+    var winner = gamedb.players.list()[findBestIndex(scores,s => s)]//bij meerdere gelijke scores wint de speler met de hoogste gebouwen puntenwaarde
 }
 
 async function round(){
 
     gamedb.roles.list().forEach(r => r.player = null)
     gamedb.murderedRole = null
-    gamedb.burgledRole
+    gamedb.burgledRole = null
     var roledeck = [0,1,2,4,5,6,7]
     shuffle(roledeck)
     if(gamedb.players.map.size == 4){
-        roledeck.splice(0,1)
-        roledeck.splice(0,1)
+        gamedb.discardedRoles = roledeck.splice(0,2)
     }else if(gamedb.players.map.size == 5){
-        roledeck.splice(0,1)
+        gamedb.discardedRoles = roledeck.splice(0,1)
     }
-
-
-    roledeck.splice(0,1)//await/coroutine show this role to the king
-    var kingrole = await discoverRoles(gamedb.players.get(gamedb.crownWearer),roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
-    kingrole.player = gamedb.crownWearer
-    findAndDelete(roledeck,kingrole.id)
-
     roledeck.push(3)
     shuffle(roledeck)
+
+    gamedb.kingshownRole = roledeck.splice(0,1)[0]
+
+    if([2,3].findIndex(v => v == gamedb.players.map.size) != -1){
+        var kingrole = await discoverRoles(gamedb.players.get(gamedb.crownWearer),roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
+        kingrole.player = gamedb.crownWearer
+        findAndDelete(roledeck,kingrole.id)
+    }
 
     for(var i = gamedb.crownWearer + 1;roledeck.length > 1; i++){
         let player = gamedb.players.list()[i % gamedb.players.map.size]
         var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
         findAndDelete(roledeck,role.id)
         role.player = player.id
+        if(gamedb.players.map.size == 7 && roledeck.length == 1){
+            let lastplayer = gamedb.players.list()[(i + 1) % gamedb.players.map.size]
+            var lastplayerrole = await discoverRoles(lastplayer,[roledeck[0],gamedb.kingshownRole].map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
+            findAndDelete(roledeck,role.id)
+            lastplayerrole.player = lastplayer.id
+        }
     }
 
     for(var role of gamedb.roles.list()){
@@ -225,11 +229,12 @@ async function roleTurn(role:Role){
     }
 
     var player = gamedb.players.get(role.player)
+    var filterDiscardedRoles = rid => gamedb.discardedRoles.findIndex(drid => drid == rid) == -1
     if(RoleId.moordenaar == role.id){//moordenaar
-        gamedb.murderedRole = (await discoverRoles(player,[1,2,3,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
+        gamedb.murderedRole = (await discoverRoles(player,[1,2,3,5,6,7].filter(filterDiscardedRoles).map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
     }
     if(RoleId.dief == role.id){//dief
-        gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
+        gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].filter(filterDiscardedRoles).map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
     }
     if(RoleId.magier == role.id){//magier
         

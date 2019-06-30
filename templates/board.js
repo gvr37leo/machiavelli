@@ -3,10 +3,13 @@ var boardhtml = `<div>
             
     </div>
     <div>
-        <div id="board" style="display: flex; justify-content: center;">
-            
+        <div class="pamabo">
+            <div style="text-align:center">jouw gebouwen</div>
+            <div id="board" style="display: flex; justify-content: center;">
+                
+            </div>
         </div>
-        <div class="handandinfo" style="display: flex">
+        <div class="handandinfo" style="display: flex; align-items: flex-start;">
             <div class="info">
                 <div class="pamabo">
                     <div>
@@ -32,8 +35,16 @@ var boardhtml = `<div>
                     <div id="muggedrole">
                     </div>
                 </div>
+                <div class="pamabo">
+                    <div>inactieve rollen</div>
+                    <div id="inactiveroles">
+                    </div>
+                </div>
             </div>
-            <div id="hand" style="display: flex; justify-content: center; flex-grow: 1;">
+            <div class="pamabo" style="flex-grow: 1;">
+                <div style="text-align:center">jouw kaarten</div>
+                <div id="hand" style="display: flex; justify-content: center; flex-grow: 1;">
+                </div>
             </div>
         </div>
     </div>

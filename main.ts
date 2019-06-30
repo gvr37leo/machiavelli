@@ -97,6 +97,7 @@ function renderPlayerPerspective(gamedb,player:Player){
     var hand = boardelement.querySelector('#hand')
     var discoverContainer = boardelement.querySelector('#discoverContainer')
     var discoverabsdiv = boardelement.querySelector('#discoverabsdiv') as HTMLElement
+    var inactiveroles = boardelement.querySelector('#inactiveroles') as HTMLElement
     
     var discoverdescription = boardelement.querySelector('#discoverdescription')
     var ownroles = boardelement.querySelector('#ownroles')
@@ -132,6 +133,10 @@ function renderPlayerPerspective(gamedb,player:Player){
         if(role.player == player.id){
             ownroles.append(genRoleHtml(gamedb,role))
         }
+    }
+
+    for(var roleid of gamedb.discardedRoles){
+        inactiveroles.append(genRoleHtml(gamedb,findbyid(gamedb.roles,roleid)))
     }
 
     if(gamedb.murderedRole){

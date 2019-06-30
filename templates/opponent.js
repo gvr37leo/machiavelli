@@ -1,4 +1,4 @@
-var opponenthtml = `<div>
+var opponenthtml = `<div class="pamabo">
     <div style="padding: 10px;">
         <img id="crownicon" width="30" height="30" src="/res/crown-solid.svg" alt=""/>
     </div>
