@@ -152,7 +152,7 @@ function countScores(firstPlayerId:number,players:Player[]){
         ]
         var uniquescore = uniqueresults.findIndex(res => res == -1) == -1 ? 0 : 3
         var firstscore = player.id == firstPlayerId ? 4 : 0
-        var secondscore = player.buildings.length >= 8 ? 2 : 0
+        var secondscore = (player.buildings.length >= 8 && player.id != firstPlayerId)  ? 2 : 0
         return buildingscore + uniquescore + firstscore + secondscore
     })
 }
@@ -177,6 +177,9 @@ async function entiregame(){
 
 async function round(){
 
+    gamedb.roles.list().forEach(r => r.player = null)
+    gamedb.murderedRole = null
+    gamedb.burgledRole
     var roledeck = [0,1,2,4,5,6,7]
     shuffle(roledeck)
     if(gamedb.players.map.size == 4){
@@ -186,6 +189,7 @@ async function round(){
         roledeck.splice(0,1)
     }
 
+
     roledeck.splice(0,1)//await/coroutine show this role to the king
     var kingrole = await discoverRoles(gamedb.players.get(gamedb.crownWearer),roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
     kingrole.player = gamedb.crownWearer
@@ -194,7 +198,6 @@ async function round(){
     roledeck.push(3)
     shuffle(roledeck)
 
-    gamedb.roles.list().forEach(r => r.player = null)
     for(var i = gamedb.crownWearer + 1;roledeck.length > 1; i++){
         let player = gamedb.players.list()[i % gamedb.players.map.size]
         var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
@@ -205,15 +208,15 @@ async function round(){
     for(var role of gamedb.roles.list()){
         let player = gamedb.players.get(role.player)
         if(player != null && gamedb.murderedRole != role.id){
-            await playerTurn(player)
+            await roleTurn(role)
         }
     }
 }
 
-async function playerTurn(player:Player){
+async function roleTurn(role:Role){
     
     var buildlimit = 1
-    if(gamedb.burgledRole == player.id){
+    if(gamedb.burgledRole == role.id){
         var burgeldrole = gamedb.roles.get(gamedb.burgledRole)
         var diefplayer = gamedb.players.get(gamedb.roles.get(RoleId.dief).player)
         var burgledplayer = gamedb.players.get(burgeldrole.player)
@@ -221,13 +224,14 @@ async function playerTurn(player:Player){
         burgledplayer.money = 0
     }
 
-    if(gamedb.roles.get(RoleId.moordenaar).player == player.id){//moordenaar
+    var player = gamedb.players.get(role.player)
+    if(RoleId.moordenaar == role.id){//moordenaar
         gamedb.murderedRole = (await discoverRoles(player,[1,2,3,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
     }
-    if(gamedb.roles.get(RoleId.dief).player == player.id){//dief
+    if(RoleId.dief == role.id){//dief
         gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
     }
-    if(gamedb.roles.get(RoleId.magier).player == player.id){//magier
+    if(RoleId.magier == role.id){//magier
         
         if(gamedb.players.map.size > 1){
             if(await discoverOptions(player,['swap','mulligan'],'swap met een andere speler of ruil met het dek') == 0){
@@ -239,24 +243,24 @@ async function playerTurn(player:Player){
         }
 
     }
-    if(gamedb.roles.get(RoleId.koning).player == player.id){//koning
+    if(RoleId.koning == role.id){//koning
         gamedb.crownWearer = player.id
         player.money += countBuildingIncome(player)
     }
-    if(gamedb.roles.get(RoleId.prediker).player == player.id){//prediker
+    if(RoleId.prediker == role.id){//prediker
         player.money += countBuildingIncome(player)
     }
-    if(gamedb.roles.get(RoleId.koopman).player == player.id){//koopman
+    if(RoleId.koopman == role.id){//koopman
         player.money++
         player.money += countBuildingIncome(player)
     }
-    if(gamedb.roles.get(RoleId.bouwmeester).player == player.id){//bouwmeester
+    if(RoleId.bouwmeester == role.id){//bouwmeester
         buildlimit = 2
         //trek 2 kaarten
         //build 2 buildings
     }
 
-    if(gamedb.roles.get(RoleId.condotierre).player == player.id){//condotierre
+    if(RoleId.condotierre == role.id){//condotierre
         player.money += countBuildingIncome(player)
         if(gamedb.players.map.size > 1){
             discoverOtherPlayers(player,'kies een speler om een van zijn gebouwen te verbranden').then(chosenPlayer => {
