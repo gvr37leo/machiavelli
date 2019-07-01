@@ -12,6 +12,8 @@ class GameDB{
     firstFinishedPlayer:number = null
     discardedRoles:number[] = []
     kingshownRole:number = null
+    playerTurn:number = null
+    roleTurn:number = null
 
 
     serialize(){
@@ -26,6 +28,8 @@ class GameDB{
             firstFinishedPlayer:this.firstFinishedPlayer,
             discardedRoles:this.discardedRoles,
             kingshownRole:this.kingshownRole,
+            playerTurn:this.playerTurn,
+            roleTurn:this.roleTurn,
         }
     }
 

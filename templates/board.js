@@ -1,5 +1,5 @@
 var boardhtml = `<div>
-    <div style="display: flex;" id="opponentcontainer">
+    <div style="display: flex; justify-content:center;" id="opponentcontainer">
             
     </div>
     <div>
@@ -18,6 +18,11 @@ var boardhtml = `<div>
                     <div id="coincontainer" style="display: flex; align-items: center;">
                         <img width="30" height="30" src="/res/coins-solid.svg" alt="">
                         <span id="coins" style="font-size: 25px;"></span>
+                    </div>
+                </div>
+                <div class="pamabo">
+                    <div>huidig spelende rol</div>
+                    <div id="currentRoleTurn">
                     </div>
                 </div>
                 <div class="pamabo">

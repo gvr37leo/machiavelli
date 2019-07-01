@@ -46,3 +46,18 @@ body{
     margin: 10px;
     border: 1px solid black;
 }
+
+.animcolor{
+    animation: pulse 1s infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes pulse{
+    0%{
+        background-color: black;
+    }
+    100%{
+        background-color: goldenrod;
+    }
+}

@@ -178,6 +178,8 @@ async function round(){
     gamedb.roles.list().forEach(r => r.player = null)
     gamedb.murderedRole = null
     gamedb.burgledRole = null
+    gamedb.roleTurn = null
+    gamedb.playerTurn = null
     var roledeck = [0,1,2,4,5,6,7]
     shuffle(roledeck)
     if(gamedb.players.map.size == 4){
@@ -190,22 +192,25 @@ async function round(){
 
     gamedb.kingshownRole = roledeck.splice(0,1)[0]
 
+    async function pickrole(player:Player, roledeck:number[]){
+        gamedb.playerTurn = player.id
+        var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
+        role.player = player.id
+        findAndDelete(roledeck,role.id)
+        return role
+    }
+
     if([2,3].findIndex(v => v == gamedb.players.map.size) != -1){
-        var kingrole = await discoverRoles(gamedb.players.get(gamedb.crownWearer),roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
-        kingrole.player = gamedb.crownWearer
-        findAndDelete(roledeck,kingrole.id)
+        await pickrole(gamedb.players.get(gamedb.crownWearer),roledeck)
     }
 
     for(var i = gamedb.crownWearer + 1;roledeck.length > 1; i++){
         let player = gamedb.players.list()[i % gamedb.players.map.size]
-        var role = await discoverRoles(player,roledeck.map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
-        findAndDelete(roledeck,role.id)
-        role.player = player.id
+        await pickrole(player,roledeck)
         if(gamedb.players.map.size == 7 && roledeck.length == 1){
             let lastplayer = gamedb.players.list()[(i + 1) % gamedb.players.map.size]
-            var lastplayerrole = await discoverRoles(lastplayer,[roledeck[0],gamedb.kingshownRole].map(rid => gamedb.roles.get(rid)),'kies een rol om te spelen')
-            findAndDelete(roledeck,role.id)
-            lastplayerrole.player = lastplayer.id
+            roledeck.push(gamedb.kingshownRole)
+            pickrole(lastplayer,roledeck)
         }
     }
 
@@ -218,7 +223,7 @@ async function round(){
 }
 
 async function roleTurn(role:Role){
-    
+    gamedb.roleTurn = role.id
     var buildlimit = 1
     if(gamedb.burgledRole == role.id){
         var burgeldrole = gamedb.roles.get(gamedb.burgledRole)
@@ -229,12 +234,12 @@ async function roleTurn(role:Role){
     }
 
     var player = gamedb.players.get(role.player)
-    var filterDiscardedRoles = rid => gamedb.discardedRoles.findIndex(drid => drid == rid) == -1
+    var filterDiscardedRoles = rid => !contains(gamedb.discardedRoles,rid) 
     if(RoleId.moordenaar == role.id){//moordenaar
         gamedb.murderedRole = (await discoverRoles(player,[1,2,3,5,6,7].filter(filterDiscardedRoles).map(rid => gamedb.roles.get(rid)),'kies iemand om te vermoorden')).id
     }
     if(RoleId.dief == role.id){//dief
-        gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].filter(filterDiscardedRoles).map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
+        gamedb.burgledRole = (await discoverRoles(player,[2,3,4,5,6,7].filter(filterDiscardedRoles).filter(rid => rid != gamedb.murderedRole).map(rid => gamedb.roles.get(rid)),'kies iemand om te bestelen')).id
     }
     if(RoleId.magier == role.id){//magier
         

@@ -98,7 +98,14 @@ function renderPlayerPerspective(gamedb,player:Player){
     var discoverContainer = boardelement.querySelector('#discoverContainer')
     var discoverabsdiv = boardelement.querySelector('#discoverabsdiv') as HTMLElement
     var inactiveroles = boardelement.querySelector('#inactiveroles') as HTMLElement
+    var currentRoleTurn = boardelement.querySelector('#currentRoleTurn') as HTMLElement
     
+    
+    //set endturnbutton to in/active
+    //highlight who's turn it is
+    //show roles of people who have taken their turn
+    //show the role that is currently playing
+
     var discoverdescription = boardelement.querySelector('#discoverdescription')
     var ownroles = boardelement.querySelector('#ownroles')
     var murderedrole = boardelement.querySelector('#murderedrole')
@@ -139,14 +146,24 @@ function renderPlayerPerspective(gamedb,player:Player){
         inactiveroles.append(genRoleHtml(gamedb,findbyid(gamedb.roles,roleid)))
     }
 
-    if(gamedb.murderedRole){
+    if(gamedb.murderedRole != null){
         var role = findbyid(gamedb.roles,gamedb.murderedRole)
         murderedrole.append(genRoleHtml(gamedb,role))
     }
 
-    if(gamedb.burgledRole){
+    if(gamedb.burgledRole != null){
         var role = findbyid(gamedb.roles,gamedb.burgledRole)
         muggedrole.append(genRoleHtml(gamedb,role))
+    }
+
+    if(gamedb.roleTurn != null){
+        var role = findbyid(gamedb.roles,gamedb.roleTurn)
+        var rolehtml = genRoleHtml(gamedb,role)
+        currentRoleTurn.append(rolehtml)
+        if(role.player == player.id){
+            rolehtml.classList.add('animcolor')
+        }
+
     }
     
     for(let i = 0; i < player.hand.length; i++){
@@ -200,6 +217,7 @@ function genOpponentHtml(gamedb,player:Player){
     var handsize = opponentelement.querySelector('#handsize')
     var moneycounter = opponentelement.querySelector('#moneycounter')
     var board = opponentelement.querySelector('#board')
+    var playingroles = opponentelement.querySelector('#playingroles')
     crown.style.visibility = 'hidden'
     if(player.id == gamedb.crownWearer){
         crown.style.visibility = 'visible'
@@ -211,6 +229,13 @@ function genOpponentHtml(gamedb,player:Player){
     for(var buildingid of player.buildings){
         var building = findbyid(gamedb.cards, buildingid)
         board.append(genCardHtml(gamedb,building))
+    }
+
+    for(var i = 0; i <= gamedb.roleTurn; i++){
+        var role:Role = findbyid(gamedb.roles,i)
+        if(role.player == player.id){
+            playingroles.append(genRoleHtml(gamedb,role))
+        }
     }
 
     return opponentelement

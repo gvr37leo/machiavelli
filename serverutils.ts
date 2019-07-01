@@ -36,6 +36,10 @@ function findBestIndex<T>(arr:T[],cb:(o:T) => number){
     return besti
 }
 
+function contains<T>(arr:T[],obj:T){
+    return arr.findIndex(v => v == obj) != -1
+}
+
 class WsBox{
     socket: WebSocket;
 
