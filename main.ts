@@ -1,6 +1,6 @@
 /// <reference path="src/utils.ts" />
 /// <reference path="node_modules/vectorx/vector.ts" />
-/// <reference path="node_modules/eventsystemx/EventSystem.ts" />
+/// <reference path="src/EventSystem.ts" />
 /// <reference path="src/projectutils.ts" />
 /// <reference path="src/models.ts" />
 /// <reference path="src/storeSetup.ts" />
@@ -82,6 +82,20 @@ function discovered(discoverindex){
     })
 }
 
+function select(selectedIndices){
+    ws.send('select',{
+        playerid,
+        selectedIndices,
+    })
+}
+
+function toggleSelect(selectindex){
+    ws.send('toggleselect',{
+        playerid,
+        selectindex,
+    })
+}
+
 function renderPlayerPerspective(gamedb,player:Player){
 
     var boardelement = string2html(boardhtml)
@@ -96,7 +110,9 @@ function renderPlayerPerspective(gamedb,player:Player){
     var coins = boardelement.querySelector('#coins')
     var hand = boardelement.querySelector('#hand')
     var discoverContainer = boardelement.querySelector('#discoverContainer')
+    var selectContainer = boardelement.querySelector('#selectContainer')
     var discoverabsdiv = boardelement.querySelector('#discoverabsdiv') as HTMLElement
+    var selectabsdiv = boardelement.querySelector('#selectabsdiv') as HTMLElement
     var inactiveroles = boardelement.querySelector('#inactiveroles') as HTMLElement
     var currentRoleTurn = boardelement.querySelector('#currentRoleTurn') as HTMLElement
     
@@ -107,15 +123,20 @@ function renderPlayerPerspective(gamedb,player:Player){
     //show the role that is currently playing
 
     var discoverdescription = boardelement.querySelector('#discoverdescription')
+    var selectdescription = boardelement.querySelector('#selectdescription')
     var ownroles = boardelement.querySelector('#ownroles')
     var murderedrole = boardelement.querySelector('#murderedrole')
     var muggedrole = boardelement.querySelector('#muggedrole')
     if(player.isDiscovering == false){
         discoverabsdiv.style.visibility = 'hidden'
     }
+    if(player.isSelecting == false){
+        selectabsdiv.style.visibility = 'hidden'
+    }
     
     
     discoverdescription.innerHTML = player.discoverDescription
+    selectdescription.innerHTML = player.discoverDescription
     endturnbutton.addEventListener('click',() => endturn(player.id))
     coins.innerHTML = player.money as any
     
@@ -123,6 +144,14 @@ function renderPlayerPerspective(gamedb,player:Player){
         for(var option of player.discoverOptions){
             discoverContainer.append(genDiscoverOptionCard(option))
         }
+    }
+    if(player.isSelecting){
+        for(var option of player.SelectOptions){
+            selectContainer.append(genSelectionOptionCard(option,0))
+        }
+        selectContainer.querySelector('#confirmbutton').addEventListener('click',() => {
+            select(player.SelectOptions.map((o,i) => o.selected ? i : -1).filter(v => v != -1))
+        })
     }
     Array.from(discoverContainer.children).forEach((el,i) => {
         el.addEventListener('click',e => {
@@ -189,11 +218,11 @@ function renderPlayerPerspective(gamedb,player:Player){
 }
 
 function genCardHtml(gamedb,card:Card){
-    return genDiscoverOptionCard(new DiscoverOption(card.image,card.name,card.cost,gamedb.roles.find(r => r.id == card.role).color,''))
+    return genDiscoverOptionCard(new DiscoverOption(card.image,card.name,card.cost,gamedb.roles.find(r => r.id == card.role).color,'',true))
 }
 
 function genRoleHtml(gamedb,role:Role){
-    return genDiscoverOptionCard(new DiscoverOption(role.image,role.name,0,role.color,''))
+    return genDiscoverOptionCard(new DiscoverOption(role.image,role.name,0,role.color,'',true))
 }
 
 function genDiscoverOptionCard(d:DiscoverOption){
@@ -208,6 +237,17 @@ function genDiscoverOptionCard(d:DiscoverOption){
     cost.innerHTML = d.cost as any
     color.style.backgroundColor = d.color
     description.innerHTML = d.description
+    return cardelement
+}
+
+function genSelectionOptionCard(d:DiscoverOption,index){
+    var cardelement = genDiscoverOptionCard(d)
+    if(d.selected == false){
+        cardelement.style.backgroundColor = 'grey'
+    }
+    cardelement.addEventListener('click',() => {
+        toggleSelect(index)
+    })
     return cardelement
 }
 

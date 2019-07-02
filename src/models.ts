@@ -12,9 +12,14 @@ class GameDB{
     firstFinishedPlayer:number = null
     discardedRoles:number[] = []
     kingshownRole:number = null
-    playerTurn:number = null
-    roleTurn:number = null
 
+
+    playerTurn:number = null//use for gamestate
+    roleTurn:number = null//use for gamestate
+    //how to handle activating all the different roles when handling game progress through state instead of async functions
+    //giving money
+    //giving cards
+    //playerturn en roleturn changelisteners?
 
     serialize(){
         return {
@@ -50,6 +55,7 @@ class DiscoverOption{
         public cost:number,
         public color:string,
         public description:string,
+        public selected:boolean,
     ){
 
     }
@@ -67,6 +73,9 @@ class Player{
     discoverOptions:DiscoverOption[] = []
     discoverDescription:string = ''
 
+    isSelecting:boolean = false
+    SelectOptions:DiscoverOption[] = []
+
 
     constructor(){
 
@@ -81,7 +90,9 @@ class Player{
             isDiscovering:this.isDiscovering,
             discoverOptions:this.discoverOptions,
             money:this.money,
-            discoverDescription:this.discoverDescription
+            discoverDescription:this.discoverDescription,
+            isSelecting:this.isSelecting,
+            SelectOptions:this.SelectOptions
         }
     }
 }

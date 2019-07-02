@@ -10,7 +10,7 @@ var opponenthtml = `<div class="pamabo">
             <img width="30" height="30" src="/res/coins-solid.svg" alt=""/>
             <span id="moneycounter" style="font-size: 25px;">:6</span>
     </div>
-    <div id="playingroles" class="display: flex; justify-content: center;">
+    <div id="playingroles" style="display: flex; justify-content: center;">
         
     </div>
     <div>
