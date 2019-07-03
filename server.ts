@@ -72,7 +72,7 @@ function chooseRoles(){
     shuffle(roleReference)
 }
 
-async function selectCard(player:Player,options:DiscoverOption[],discoverDescription:string):Promise<number[]>{
+async function select(player:Player,options:DiscoverOption[],discoverDescription:string):Promise<number[]>{
     player.isSelecting = true
     player.SelectOptions = options
     player.discoverDescription = discoverDescription
@@ -87,6 +87,10 @@ async function selectCard(player:Player,options:DiscoverOption[],discoverDescrip
             }
         })
     })
+}
+
+async function selectCards(player:Player,cards:Card[],discoverDescription:string):Promise<number[]>{
+    return select(player,cards.map(c => new DiscoverOption(c.image,c.name,c.cost, gamedb.roles.get(c.role).color,'',true)),discoverDescription)
 }
 
 async function discover(player:Player,options:DiscoverOption[],discoverDescription:string):Promise<number>{
@@ -177,6 +181,13 @@ function countScores(firstPlayerId:number,players:Player[]){
     })
 }
 
+
+//------------------game flow---------------------
+//|||||||||||||||||||||||||||||||||||
+//|||||||||||||||||||||||||||||||||||
+//|||||||||||||||||||||||||||||||||||
+//|||||||||||||||||||||||||||||||||||
+//|||||||||||||||||||||||||||||||||||
 async function entiregame(){
     shuffle(gamedb.deck)
     gamedb.players.list().forEach(p => {
@@ -193,6 +204,7 @@ async function entiregame(){
     var winner = gamedb.players.list()[findBestIndex(scores,s => s)]//bij meerdere gelijke scores wint de speler met de hoogste gebouwen puntenwaarde
 }
 
+//-----------------------------------
 async function round(){
 
     gamedb.roles.list().forEach(r => r.player = null)
@@ -242,6 +254,8 @@ async function round(){
     }
 }
 
+//------------------------------------------------------
+//listen to roleturnchange
 async function roleTurn(role:Role){
     gamedb.roleTurn = role.id
     var buildlimit = 1
@@ -269,6 +283,7 @@ async function roleTurn(role:Role){
                 var swapPlayer:Player = await discoverOtherPlayers(player,'kies om een speler om mee van kaarten te ruilen');
                 [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
             }else{
+                selectCards(player,)
                 // mulligan(player.id)
             }
         }
