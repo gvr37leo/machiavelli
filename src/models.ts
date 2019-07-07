@@ -74,7 +74,8 @@ class Player{
     discoverDescription:string = ''
 
     isSelecting:boolean = false
-    SelectOptions:DiscoverOption[] = []
+    selectOptions:DiscoverOption[] = []
+    selectedOptions:boolean[] = []
 
 
     constructor(){
@@ -92,7 +93,8 @@ class Player{
             money:this.money,
             discoverDescription:this.discoverDescription,
             isSelecting:this.isSelecting,
-            SelectOptions:this.SelectOptions
+            selectOptions:this.selectOptions,
+            selectedOptions:this.selectedOptions,
         }
     }
 }

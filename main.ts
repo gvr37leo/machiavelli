@@ -146,11 +146,11 @@ function renderPlayerPerspective(gamedb,player:Player){
         }
     }
     if(player.isSelecting){
-        for(var option of player.SelectOptions){
+        for(var option of player.selectOptions){
             selectContainer.append(genSelectionOptionCard(option,0))
         }
         selectContainer.querySelector('#confirmbutton').addEventListener('click',() => {
-            select(player.SelectOptions.map((o,i) => o.selected ? i : -1).filter(v => v != -1))
+            select(player.selectOptions.map((o,i) => o.selected ? i : -1).filter(v => v != -1))
         })
     }
     Array.from(discoverContainer.children).forEach((el,i) => {

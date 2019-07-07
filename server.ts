@@ -56,7 +56,8 @@ var onEndTurn = new EventSystem<{playerid:number}>()
 var onStart = new EventSystem<{playerid:number}>()
 var onReset = new EventSystem<{playerid:number}>()
 var onDiscover = new EventSystem<{playerid:number,discoverindex:number}>()
-var onSelection = new EventSystem<{playerid:number,selectedIndices:number[]}>()
+var onSelection = new EventSystem<{playerid:number,selectedIndex:number}>()
+var onConfirmSelection = new EventSystem<{playerid:number}>()
 
 function updateClients(){
     for(var player of gamedb.players.list()){
@@ -74,16 +75,27 @@ function chooseRoles(){
 
 async function select(player:Player,options:DiscoverOption[],discoverDescription:string):Promise<number[]>{
     player.isSelecting = true
-    player.SelectOptions = options
+    player.selectOptions = options
     player.discoverDescription = discoverDescription
+    player.selectedOptions = new Array(player.selectedOptions.length).fill(true)
     updateClients()
     return new Promise((res,rej) => {
-        onSelection.listenOnce(data => {
+        var onSelectionListener = data => {
             if(data.playerid == player.id){
+                player.selectedOptions[data.selectedIndex] = !player.selectedOptions[data.selectedIndex]
+                updateClients()
+            }
+        }
+        onSelection.listen(onSelectionListener)
+
+        onConfirmSelection.listenOnce(data => {
+            if(data.playerid == player.id){
+                onSelection.deafen(onSelectionListener)
                 player.isSelecting = false
-                player.SelectOptions = []
+                player.selectOptions = []
+                player.selectedOptions = []
                 player.discoverDescription = ''
-                res(data.selectedIndices)
+                res(player.selectedOptions.map((v,i) => v ? i : -1).filter(v => v != -1))
             }
         })
     })
@@ -283,8 +295,11 @@ async function roleTurn(role:Role){
                 var swapPlayer:Player = await discoverOtherPlayers(player,'kies om een speler om mee van kaarten te ruilen');
                 [player.hand,swapPlayer.hand] = [swapPlayer.hand,player.hand]
             }else{
-                selectCards(player,)
-                // mulligan(player.id)
+                var selectedcardsindices:number[] = await selectCards(player,player.hand.map(cid => gamedb.cards.get(cid)), 'selecteer kaarten om te ruilen')
+                var deckcards = gamedb.deck.splice(0,selectedcardsindices.length)
+                selectedcardsindices.forEach((hid,i) => {
+                    player.hand[hid] = deckcards[i]
+                });
             }
         }
 
