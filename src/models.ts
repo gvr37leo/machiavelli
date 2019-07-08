@@ -75,7 +75,6 @@ class Player{
 
     isSelecting:boolean = false
     selectOptions:DiscoverOption[] = []
-    selectedOptions:boolean[] = []
 
 
     constructor(){
@@ -94,7 +93,6 @@ class Player{
             discoverDescription:this.discoverDescription,
             isSelecting:this.isSelecting,
             selectOptions:this.selectOptions,
-            selectedOptions:this.selectedOptions,
         }
     }
 }

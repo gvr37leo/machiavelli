@@ -39,7 +39,8 @@ wss.on('connection', function connection(ws) {
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
     wsbox.listen('discover',data => onDiscover.trigger(data,null))
     wsbox.listen('playcard',data => onPlayCard.trigger(data,null))
-    wsbox.listen('select',data => onSelection.trigger(data,null))
+    wsbox.listen('toggleselect',data => onToggleSelection.trigger(data,null))
+    wsbox.listen('confirmselect',data => onConfirmSelection.trigger(data,null))
     
     
     
@@ -56,7 +57,7 @@ var onEndTurn = new EventSystem<{playerid:number}>()
 var onStart = new EventSystem<{playerid:number}>()
 var onReset = new EventSystem<{playerid:number}>()
 var onDiscover = new EventSystem<{playerid:number,discoverindex:number}>()
-var onSelection = new EventSystem<{playerid:number,selectedIndex:number}>()
+var onToggleSelection = new EventSystem<{playerid:number,selectedIndex:number}>()
 var onConfirmSelection = new EventSystem<{playerid:number}>()
 
 function updateClients(){
@@ -77,25 +78,25 @@ async function select(player:Player,options:DiscoverOption[],discoverDescription
     player.isSelecting = true
     player.selectOptions = options
     player.discoverDescription = discoverDescription
-    player.selectedOptions = new Array(player.selectedOptions.length).fill(true)
     updateClients()
     return new Promise((res,rej) => {
         var onSelectionListener = data => {
             if(data.playerid == player.id){
-                player.selectedOptions[data.selectedIndex] = !player.selectedOptions[data.selectedIndex]
+                player.selectOptions[data.selectedIndex].selected = !player.selectOptions[data.selectedIndex].selected
                 updateClients()
             }
         }
-        onSelection.listen(onSelectionListener)
+        onToggleSelection.listen(onSelectionListener)
 
         onConfirmSelection.listenOnce(data => {
             if(data.playerid == player.id){
-                onSelection.deafen(onSelectionListener)
+                onToggleSelection.deafen(onSelectionListener)
                 player.isSelecting = false
+                var result = player.selectOptions.map((option,i) => option.selected ? i : -1).filter(v => v != -1)
                 player.selectOptions = []
-                player.selectedOptions = []
+                player.selectOptions = []
                 player.discoverDescription = ''
-                res(player.selectedOptions.map((v,i) => v ? i : -1).filter(v => v != -1))
+                res(result)
             }
         })
     })

@@ -82,19 +82,20 @@ function discovered(discoverindex){
     })
 }
 
-function select(selectedIndices){
-    ws.send('select',{
+function toggleSelect(selectedIndex){
+    ws.send('toggleselect',{
         playerid,
-        selectedIndices,
+        selectedIndex,
     })
 }
 
-function toggleSelect(selectindex){
-    ws.send('toggleselect',{
+function confirmSelect(){
+    ws.send('confirmselect',{
         playerid,
-        selectindex,
     })
 }
+
+
 
 function renderPlayerPerspective(gamedb,player:Player){
 
@@ -146,11 +147,11 @@ function renderPlayerPerspective(gamedb,player:Player){
         }
     }
     if(player.isSelecting){
-        for(var option of player.selectOptions){
-            selectContainer.append(genSelectionOptionCard(option,0))
-        }
-        selectContainer.querySelector('#confirmbutton').addEventListener('click',() => {
-            select(player.selectOptions.map((o,i) => o.selected ? i : -1).filter(v => v != -1))
+        player.selectOptions.forEach((option,i) => {
+            selectContainer.append(genSelectionOptionCard(option,i))
+        })
+        document.querySelector('#confirmbutton').addEventListener('click',() => {
+            confirmSelect()
         })
     }
     Array.from(discoverContainer.children).forEach((el,i) => {
@@ -244,6 +245,8 @@ function genSelectionOptionCard(d:DiscoverOption,index){
     var cardelement = genDiscoverOptionCard(d)
     if(d.selected == false){
         cardelement.style.backgroundColor = 'grey'
+    }else{
+        cardelement.style.backgroundColor = 'green'
     }
     cardelement.addEventListener('click',() => {
         toggleSelect(index)

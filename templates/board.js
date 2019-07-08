@@ -76,7 +76,7 @@ var boardhtml = `<div>
             <div id="selectContainer" style="display: flex; justify-content: center;">
                 
             </div>
-            <button type="button" value="confirm" id="confirmbutton">
+            <button type="button" id="confirmbutton">confirm</button>
         </div>
     </div>
 
