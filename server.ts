@@ -194,6 +194,13 @@ function countScores(firstPlayerId:number,players:Player[]){
     })
 }
 
+//discover event player.isDiscovering
+//select event player.isSelecting
+//rolepick/playerpickturn
+
+//gamestart event
+//roundstart event
+//rolestart event(role) en roleturnchangeevent
 
 //------------------game flow---------------------
 //|||||||||||||||||||||||||||||||||||
@@ -327,7 +334,7 @@ async function roleTurn(role:Role){
             discoverOtherPlayers(player,'kies een speler om een van zijn gebouwen te verbranden').then(chosenPlayer => {
                 discoverCards(player,chosenPlayer.buildings.map(bid => gamedb.cards.get(bid)),'kies een gebouw om te verbranden').then(chosenBuilding => {
                     player.money -= chosenBuilding.cost - 1
-                    findAndDelete(player.buildings,chosenBuilding)
+                    findAndDelete(chosenPlayer.buildings,chosenBuilding)
                 })
             })
         }
@@ -368,33 +375,3 @@ async function roleTurn(role:Role){
     })
     
 }
-
-
-
-
-
-//round
-//leg x van de 8 kaarten open op tafel (niet de koning)
-//2-3|4|5|6-7
-// 0  2 1  0
-
-//koning pakt bovenste kaart van de stapel en legt deze gedekt naast de 3 open kaarten
-//pak kaart en geef door aan de volgende speler
-//leg het laatste karakter gedekt op tafel
-
-//turn
-//inkomstenfase
-//2 goud of discover 2 kaarten
-//bouwfase
-//bouw 1 gebouw
-//mag geen duplicaten bouwen
-//karaktereigenschap mag elk moment in een speler zijn beurt gebruikt worden
-
-//spel is afgelopen als een speler 8 gebouwen heeft
-//maak ronde af
-
-//winnaar
-//puntenwaarde van alle gebouwen
-//3 punten als je een gebouw van elke kleur hebt
-//4 punten voor eerste speler met 8 gebouwen
-//2 punten voor spelers die nog net 8 gebouwen hebben kunnen krijgen
