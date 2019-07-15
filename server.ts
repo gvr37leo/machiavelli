@@ -34,7 +34,7 @@ wss.on('connection', function connection(ws) {
     })
     
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
-    wsbox.listen('start',data => entiregame())
+    wsbox.listen('start',data => gamestartEvent.trigger())
     wsbox.listen('reset',data => onReset.trigger(data,null))
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
     wsbox.listen('discover',data => onDiscover.trigger(data,null))
@@ -59,6 +59,14 @@ var onReset = new EventSystem<{playerid:number}>()
 var onDiscover = new EventSystem<{playerid:number,discoverindex:number}>()
 var onToggleSelection = new EventSystem<{playerid:number,selectedIndex:number}>()
 var onConfirmSelection = new EventSystem<{playerid:number}>()
+
+var gamestartEvent = new EventSystemVoid()
+var gameendEvent = new EventSystemVoid()
+var roundstartEvent = new EventSystemVoid()
+var roundendEvent = new EventSystemVoid()
+var roleturnBox = new Box<Role>(null)
+
+
 
 function updateClients(){
     for(var player of gamedb.players.list()){
@@ -208,7 +216,7 @@ function countScores(firstPlayerId:number,players:Player[]){
 //|||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||
-async function entiregame(){
+gamestartEvent.listen(() => {
     shuffle(gamedb.deck)
     gamedb.players.list().forEach(p => {
         p.money = 2
@@ -217,16 +225,20 @@ async function entiregame(){
     gamedb.crownWearer = randomInt(0,gamedb.players.map.size)
 
     
-    while(gamedb.firstFinishedPlayer == null){
-        await round()
-    }
-    var scores = countScores(gamedb.firstFinishedPlayer,gamedb.players.list())
-    var winner = gamedb.players.list()[findBestIndex(scores,s => s)]//bij meerdere gelijke scores wint de speler met de hoogste gebouwen puntenwaarde
-}
+    roundstartEvent.trigger()
+    roundendEvent.listen(() => {
+        if(gamedb.firstFinishedPlayer == null){
+            gameendEvent.trigger()
+            var scores = countScores(gamedb.firstFinishedPlayer,gamedb.players.list())
+            var winner = gamedb.players.list()[findBestIndex(scores,s => s)]//bij meerdere gelijke scores wint de speler met de hoogste gebouwen puntenwaarde
+        }else{
+            roundstartEvent.trigger()
+        }
+    })
+})
 
 //-----------------------------------
-async function round(){
-
+roundstartEvent.listen(() => {
     gamedb.roles.list().forEach(r => r.player = null)
     gamedb.murderedRole = null
     gamedb.burgledRole = null
@@ -266,17 +278,18 @@ async function round(){
         }
     }
 
-    for(var role of gamedb.roles.list()){
+    for(var role of gamedb.roles.list()){//hier gaat iets fout met loops, moet vervangen worden met roleturn start en end
         let player = gamedb.players.get(role.player)
         if(player != null && gamedb.murderedRole != role.id){
-            await roleTurn(role)
+            roleturnBox.set(role)
         }
     }
-}
+})
+
 
 //------------------------------------------------------
 //listen to roleturnchange
-async function roleTurn(role:Role){
+roleturnBox.onchange.listen((role,oldrole) => {
     gamedb.roleTurn = role.id
     var buildlimit = 1
     if(gamedb.burgledRole == role.id){
@@ -365,13 +378,9 @@ async function roleTurn(role:Role){
     }
     onPlayCard.listen(onPlayCardcb)
     updateClients()
-    await new Promise((res,rej) => {
-        onEndTurn.listenOnce(p => {
-            if(p.playerid == player.id){
-                onPlayCard.deafen(onPlayCardcb)
-                res()
-            }
-        })
+    onEndTurn.listenOnce(p => {
+        if(p.playerid == player.id){
+            onPlayCard.deafen(onPlayCardcb)
+        }
     })
-    
-}
+})
