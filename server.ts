@@ -7,6 +7,23 @@
 
 
 
+class CPromise<T>{
+    res:EventSystem<T>
+    constructor(public func:(res:EventSystem<T>) => void){
+
+    }
+
+    call(){
+        this.func(this.res)
+    }
+
+    then(cb:(val:T,old:T) => void){
+        this.res.listen(cb)
+    }
+}
+
+
+
 
 var myws = require('ws');
 var express = require('express')
@@ -34,7 +51,7 @@ wss.on('connection', function connection(ws) {
     })
     
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
-    wsbox.listen('start',data => gamestartEvent.trigger())
+    wsbox.listen('start',data => new CPromise<void>(entiregame))
     wsbox.listen('reset',data => onReset.trigger(data,null))
     wsbox.listen('endturn',data => onEndTurn.trigger(data,null))
     wsbox.listen('discover',data => onDiscover.trigger(data,null))
@@ -60,8 +77,8 @@ var onDiscover = new EventSystem<{playerid:number,discoverindex:number}>()
 var onToggleSelection = new EventSystem<{playerid:number,selectedIndex:number}>()
 var onConfirmSelection = new EventSystem<{playerid:number}>()
 
-var gamestartEvent = new EventSystemVoid()
-var gameendEvent = new EventSystemVoid()
+// var gamestartEvent = new EventSystemVoid()
+// var gameendEvent = new EventSystemVoid()
 var roundstartEvent = new EventSystemVoid()
 var roundendEvent = new EventSystemVoid()
 var roleturnBox = new Box<Role>(null)
@@ -216,7 +233,9 @@ function countScores(firstPlayerId:number,players:Player[]){
 //|||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||
-gamestartEvent.listen(() => {
+
+
+function entiregame(res:EventSystem<void>){
     shuffle(gamedb.deck)
     gamedb.players.list().forEach(p => {
         p.money = 2
@@ -228,14 +247,14 @@ gamestartEvent.listen(() => {
     roundstartEvent.trigger()
     roundendEvent.listen(() => {
         if(gamedb.firstFinishedPlayer == null){
-            gameendEvent.trigger()
+            res.trigger()
             var scores = countScores(gamedb.firstFinishedPlayer,gamedb.players.list())
             var winner = gamedb.players.list()[findBestIndex(scores,s => s)]//bij meerdere gelijke scores wint de speler met de hoogste gebouwen puntenwaarde
         }else{
             roundstartEvent.trigger()
         }
     })
-})
+}
 
 //-----------------------------------
 roundstartEvent.listen(() => {
@@ -278,18 +297,27 @@ roundstartEvent.listen(() => {
         }
     }
 
+
     for(var role of gamedb.roles.list()){//hier gaat iets fout met loops, moet vervangen worden met roleturn start en end
+        
+        
+    }
+    var pro = new CPromise<Role>(roleturn)
+    pro.then((val,old) => {
         let player = gamedb.players.get(role.player)
         if(player != null && gamedb.murderedRole != role.id){
-            roleturnBox.set(role)
+            
+            
         }
-    }
+    })
+
+
 })
 
 
 //------------------------------------------------------
 //listen to roleturnchange
-roleturnBox.onchange.listen((role,oldrole) => {
+function roleturn(res:EventSystem<Role>){
     gamedb.roleTurn = role.id
     var buildlimit = 1
     if(gamedb.burgledRole == role.id){
